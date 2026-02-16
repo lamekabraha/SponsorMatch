@@ -8,6 +8,7 @@ import Header from './Components/Header';
 library.add(faCheck);
 library.add(faTwitter);
 
+export default function HomePage(){
   return (
     <div>
       
@@ -30,9 +31,9 @@ library.add(faTwitter);
                     />
                 </Link>
             </div>
-        <div className="fixed top-0 left-0 w-full h-[50px] bg-[#fed857] z-[99] flex items-center space-x-4 justify-end pr-4 ">
-          <button className="px-4 py-2 font-Body bg-[#fed857] hover:bg-[#ffffff] rounded relative z-100">Login</button>
-          <button className="px-4 py-2 font-Body bg-[#fed857] hover:bg-[#ffffff] rounded relative z-100">Sign Up</button>
+        <div className="fixed top-0 left-0 w-full h-[50px] bg-Yellow z-[99] flex items-center space-x-4 justify-end pr-4 ">
+          <button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-100">Login</button>
+          <button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-100">Sign Up</button>
         </div>
         <div>
           <img
