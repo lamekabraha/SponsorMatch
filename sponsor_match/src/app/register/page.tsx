@@ -38,7 +38,7 @@ export default function RegisterPage() {
 
     if (!validatePassword(password)) {
       setError(
-        "Password must be a minimum of 8 characters and include a symbol and a number."
+        "Password has to be a minimum of 8 characters and include a symbol and number."
       );
       return;
     }
@@ -48,14 +48,14 @@ export default function RegisterPage() {
       return;
     }
 
-    alert("Registered successfully!");
+  alert("Registered successfully!");
   };
 
   return (
     <div className="reg-page">
       <div className="reg-header">
         <h1 className="reg-title">Create your account</h1>
-        <p className="reg-subtitle">Join our platform and start connecting</p>
+        <p className="reg-subtitle">Join our platform and start connecting.</p>
       </div>
 
       <div className="reg-card">
@@ -98,7 +98,7 @@ export default function RegisterPage() {
           </label>
           <input className="reg-input" type="text" />
 
-          <label className="reg-label">
+        <label className="reg-label">
             Password <span className="reg-required">*</span>
           </label>
           <div className="reg-password-wrapper">
@@ -117,7 +117,7 @@ export default function RegisterPage() {
             </button>
           </div>
 
-          <label className="reg-label">
+      <label className="reg-label">
             Confirm password <span className="reg-required">*</span>
           </label>
           <div className="reg-password-wrapper">
