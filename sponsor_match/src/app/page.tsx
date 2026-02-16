@@ -11,6 +11,7 @@ library.add(faTwitter);
 export default function Home() {
   return (
     <div>
+      
       <h1 className="text-center text-3xl font-Heading relative z-100 hidden md:flex md:justify-center">Sponsor Match</h1>
       <Header />
       <Footer />
@@ -51,9 +52,14 @@ export default function Home() {
     <button className="px-6 py-3 bg-[#fed857] hover:bg-[#f0c23c] rounded-full font-Body">
       Get Started →
     </button>
+    <img src="/Icon1.png" alt="Icon1" className="w-16 h-16" />
+
+          <p className="text-center font-Body mb-4">Sports clubs, community groups and voluntary organisations 
+            can create campaigns, showcase their impact and 
+            connect with corprate partners..</p>
   </div>
 </div>
-
     </div>
+    
   );
 }
