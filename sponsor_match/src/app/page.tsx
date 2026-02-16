@@ -1,6 +1,6 @@
-import {library} from '@fortawesome/fontawesome-svg-core';
+import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {faCheck} from '@fortawesome/free-solid-svg-icons';
+import { faCheck } from '@fortawesome/free-solid-svg-icons';
 import { faTwitter } from '@fortawesome/free-brands-svg-icons';
 import Link from 'next/link';
 import Footer from './Components/Footer';
@@ -8,7 +8,6 @@ import Header from './Components/Header';
 library.add(faCheck);
 library.add(faTwitter);
 
-export default function Home() {
   return (
     <div>
       <h1 className="text-center text-3xl font-Heading relative z-100 hidden md:flex md:justify-center">Sponsor Match</h1>
