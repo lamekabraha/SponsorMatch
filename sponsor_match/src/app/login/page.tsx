@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import "./login.css";
+import Header from "../Components/Header";
+import Footer from "../Components/Footer";
+import Link from "next/link";
 export default function LoginPage() {
 const router = useRouter();
 
@@ -44,9 +47,33 @@ const isVcse = lower.includes("vcse") || lower.includes("charity");
   return (
     <div className="log-page">
       <div className="log-header">
+        <div className="reg-header pt-[50px]">
+        
+        <Header />
+        <Footer />
+        <div className="fixed top-0 left-0 w-full h-[50px] bg-Yellow z-[100] flex items-center space-x-4 justify-end pr-4 ">
+          <Link href="/register"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-100">Sign Up</button></Link>         
+          <Link href="/"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-100">Home</button></Link>
+        </div>
+        <div style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                zIndex: 200
+            }}>
+                <Link href="/">
+                    <img
+                        src="/Logo1.png"
+                        alt="Funding Logo"
+                        width={150}
+                        height={150}
+                        className="relative z-100"
+                    />
+                </Link>
+            </div>
         <h1 className="log-title">SponsorMatch</h1>
     </div>
-
+    </div>
       <div className="log-card">
     <form className="log-form" onSubmit={handleSubmit}>
           <label className="log-label">
