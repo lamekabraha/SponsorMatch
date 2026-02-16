@@ -11,7 +11,7 @@ library.add(faTwitter);
 export default function Home() {
   return (
     <div>
-      <h1 className="text-center text-3xl font-Heading relative z-100">Sponsor Match</h1>
+      <h1 className="text-center text-3xl font-Heading relative z-100 hidden md:flex md:justify-center">Sponsor Match</h1>
       <Header />
       <Footer />
       <div style={{
@@ -34,6 +34,26 @@ export default function Home() {
           <button className="px-4 py-2 font-Body bg-[#fed857] hover:bg-[#ffffff] rounded relative z-100">Login</button>
           <button className="px-4 py-2 font-Body bg-[#fed857] hover:bg-[#ffffff] rounded relative z-100">Sign Up</button>
         </div>
+        <div>
+          <img
+            src="/LandingPageImage1.png"
+            alt="Side Image"
+            className="fixed right-0 top-[50px] h-[calc(100%-50px)] object-cover z-[50]"/>
+        </div>
+      <div className="flex pr-10 mt-40">
+  <div className="max-w-xs text-right">
+    <p className="text-lg font-Body mb-4">
+      A platform where grassroots sports clubs, community groups, and voluntary
+      organisations connect with companies seeking meaningful partnerships.
+      Build relationships that strengthen communities.
+    </p>
+
+    <button className="px-6 py-3 bg-[#fed857] hover:bg-[#f0c23c] rounded-full font-Body">
+      Get Started →
+    </button>
+  </div>
+</div>
+
     </div>
   );
 }

@@ -10,7 +10,7 @@ export default function Header() {
                 width: "100%",
                 height: "50px",
                 backgroundColor: "#fed857",
-                zIndex: 99
+                zIndex: 50
             }} />
 
             
