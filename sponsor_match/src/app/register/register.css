@@ -1,4 +1,4 @@
-/* register.css (self-contained, no need to edit globals.css) */
+/* register.css aligned with globals.css and the theme that is in the wireframes */
 
 :root {
   --sm-yellow: #fed857;
@@ -159,6 +159,7 @@
   font-weight: 600;
 }
 
+/*added a hover effect*/
 .reg-toggle:hover {
   color: var(--sm-yellow);
 }
