@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import "./register.css";
-
+import Header from "../Components/Header";
+import Footer from "../Components/Footer";
+import Link from 'next/link';
 type Role = "business" | "vcse";
 
 export default function RegisterPage() {
@@ -52,8 +54,32 @@ export default function RegisterPage() {
   };
 
   return (
+
     <div className="reg-page">
-      <div className="reg-header">
+      <div className="reg-header pt-[50px]">
+        
+        <Header />
+        <Footer />
+        <div className="fixed top-0 left-0 w-full h-[50px] bg-Yellow z-[100] flex items-center space-x-4 justify-end pr-4 ">
+          <Link href="/login"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-100">Login</button></Link>         
+          <Link href="/"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-100">Home</button></Link>
+        </div>
+        <div style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                zIndex: 200
+            }}>
+                <Link href="/">
+                    <img
+                        src="/Logo1.png"
+                        alt="Funding Logo"
+                        width={150}
+                        height={150}
+                        className="relative z-100"
+                    />
+                </Link>
+            </div>
         <h1 className="reg-title">Create your account</h1>
         <p className="reg-subtitle">Join our platform and start connecting</p>
       </div>

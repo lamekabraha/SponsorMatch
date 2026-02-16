@@ -3,6 +3,7 @@ import Link from "next/link";
 export default function Header() {
     return (
         <>
+        
             <div style={{
                 position: "fixed",
                 top: 0,
@@ -12,8 +13,6 @@ export default function Header() {
                 backgroundColor: "#fed857",
                 zIndex: 50
             }} />
-
-            
         </>
     );
 }
