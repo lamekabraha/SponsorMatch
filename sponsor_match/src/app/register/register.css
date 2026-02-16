@@ -1,0 +1,165 @@
+/* register.css aligned with globals.css and the theme that is in the wireframes */
+
+:root {
+  --sm-yellow: #fed857;
+  --sm-black: #000;
+  --sm-white: #fff;
+  --sm-border: rgba(0, 0, 0, 0.12);
+}
+
+.reg-page {
+  min-height: 100vh;
+  background: var(--background, #ffffff);
+  color: var(--foreground, #171717);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.reg-header {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.reg-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.reg-subtitle {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: rgba(23, 23, 23, 0.65);
+}
+
+.reg-card {
+  width: 420px;
+  max-width: 92vw;
+  background: var(--sm-white);
+  border: 1px solid var(--sm-border);
+  border-radius: 10px;
+  padding: 22px;
+}
+
+.reg-small-label {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: rgba(23, 23, 23, 0.75);
+}
+
+.reg-role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.reg-role-tile {
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  border-radius: 10px;
+  background: var(--sm-white);
+  padding: 18px 14px;
+  cursor: pointer;
+  text-align: center;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.reg-role-tile.is-active {
+  background: rgba(23, 23, 23, 0.82);
+  border-color: rgba(23, 23, 23, 0.82);
+  color: var(--sm-white);
+}
+
+.reg-role-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+
+.reg-role-desc {
+  font-size: 11px;
+  line-height: 1.3;
+  opacity: 0.85;
+}
+
+.reg-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reg-label {
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.reg-required {
+  color: var(--sm-yellow);
+  font-weight: 900;
+}
+
+.reg-input {
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  outline: none;
+}
+
+.reg-input:focus {
+  border-color: var(--sm-yellow);
+  box-shadow: 0 0 0 3px rgba(254, 216, 87, 0.35);
+}
+
+.reg-submit {
+  margin-top: 14px;
+  height: 42px;
+  border-radius: 8px;
+  border: 0;
+  background: rgba(23, 23, 23, 0.82);
+  color: var(--sm-white);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.reg-submit:hover {
+  opacity: 0.92;
+}
+
+.reg-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.reg-password-wrapper .reg-input {
+  width: 100%;
+  padding-right: 50px;
+}
+
+.reg-toggle {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+  color: rgba(23, 23, 23, 0.7);
+  font-weight: 600;
+}
+
+/*added a hover effect*/
+.reg-toggle:hover {
+  color: var(--sm-yellow);
+}
