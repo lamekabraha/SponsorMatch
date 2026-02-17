@@ -38,7 +38,7 @@ export default function Navbar() {
                         <Link href="/...." className="font-Heading hover:underline block mb-4">My Account</Link>
                         <Link href="/...." className="font-Heading hover:underline block mb-4">Create Campain</Link>
                         <Link href="/...." className="font-Heading hover:underline block mb-4">Favourites</Link>
-                        <Link href="/...." className="font-Heading hover:underline block mb-4">Logout</Link>
+                        <Link href="/" className="font-Heading hover:underline block mb-4">Logout</Link>
                      </div>   
                 </div>
                 
@@ -54,7 +54,7 @@ export default function Navbar() {
                     >
                      <div className="p-6 space-y-4">                        
                         <Link href="/...." className="font-Heading hover:underline block mb-4">My Account</Link>
-                        <Link href="/...." className="font-Heading hover:underline block mb-4">Logout</Link>
+                        <Link href="/" className="font-Heading hover:underline block mb-4">Logout</Link>
                      </div>   
                 </div>
             </div>
