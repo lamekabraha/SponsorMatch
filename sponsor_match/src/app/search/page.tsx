@@ -8,7 +8,7 @@ export default function SearchPage() {
         <div className="search-page">
             <Navbar />
             <Footer />
-            <div className="w-64 bg-Yellow shadow-lg rounded-lg p-5 mt-10 ml-5">
+            <div className="w-64 bg-Yellow shadow-lg border border-Black rounded-lg p-5 mt-10 ml-5">
                 <button className="px-2 py-1 bg-Black text-White rounded mb-4 hover:bg-White hover:text-Black">Search</button>
                 <h1 className="font-Body text-xl mb-4">Filters</h1>
             <div className="space-y-3">
