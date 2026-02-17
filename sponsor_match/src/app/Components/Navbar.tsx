@@ -36,7 +36,7 @@ export default function Navbar() {
                         <p className="font-Heading text-lg">Menu</p>
                         <Link href="/search" className="font-Heading hover:underline block mb-4">Search</Link>
                         <Link href="/...." className="font-Heading hover:underline block mb-4">My Account</Link>
-                        <Link href="/...." className="font-Heading hover:underline block mb-4"> Dashboard</Link>
+                        <Link href="/dashboard" className="font-Heading hover:underline block mb-4"> Dashboard</Link>
                         <Link href="/...." className="font-Heading hover:underline block mb-4">Create Campain</Link>
                         <Link href="/...." className="font-Heading hover:underline block mb-4">Favourites</Link>
                         <Link href="/" className="font-Heading hover:underline block mb-4">Logout</Link>
