@@ -36,6 +36,7 @@ export default function Navbar() {
                         <p className="font-Heading text-lg">Menu</p>
                         <Link href="/search" className="font-Heading hover:underline block mb-4">Search</Link>
                         <Link href="/...." className="font-Heading hover:underline block mb-4">My Account</Link>
+                        <Link href="/...." className="font-Heading hover:underline block mb-4"> Dashboard</Link>
                         <Link href="/...." className="font-Heading hover:underline block mb-4">Create Campain</Link>
                         <Link href="/...." className="font-Heading hover:underline block mb-4">Favourites</Link>
                         <Link href="/" className="font-Heading hover:underline block mb-4">Logout</Link>
@@ -44,7 +45,7 @@ export default function Navbar() {
                 
             </div>
             <div 
-                className="fixed top-3 right-0 z-200 group"
+                className="fixed top-2 right-0 z-200 group"
             >
                 <FontAwesomeIcon icon={faCircleUser} className="text-2xl bg-Yellow px-4 py-1 text-Black rounded "/>
                 <div 
