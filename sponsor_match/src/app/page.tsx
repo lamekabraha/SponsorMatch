@@ -39,9 +39,9 @@ export default function HomePage(){
                     />
                 </Link>
             </div>
-        <div className="fixed top-0 left-0 w-full h-[50px] bg-Yellow z-[100] flex items-center space-x-4 justify-end pr-4 ">
-          <Link href="/login"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-100">Login</button></Link>         
-          <Link href="/register"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-100">Sign Up</button></Link>
+        <div className="fixed top-0 right-0 h-[50px] bg-Yellow z-[200] flex items-center space-x-4 justify-end pr-4 ">
+          <Link href="/login"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-200">Login</button></Link>         
+          <Link href="/register"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-200">Sign Up</button></Link>
         </div>
         <div>
           <img
