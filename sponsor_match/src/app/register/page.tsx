@@ -2,86 +2,102 @@
 
 import { useState } from "react";
 import "./register.css";
-import Header from "../Components/Header";
-import Footer from "../Components/Footer";
-import Link from 'next/link';
+import {signIn} from "next-auth/react";
+import { useRouter } from "next/navigation";
+
 type Role = "business" | "vcse";
 
 export default function RegisterPage() {
-  const [role, setRole] = useState<Role>("business");
+  const router = useRouter();
+  const [accountType, setAccountType] = useState<Role>("business");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [accountName, setAccountName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  // used regex to validate email so that it is more secure
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  // password validate
   const validatePassword = (password: string) => {
     const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{8,}$/;
     return passwordRegex.test(password);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    
+    if (!validateEmail(email)){
+      setError("Please Enter a valid email address.");
+      return;
+    }  
 
-    if (!validateEmail(email)) {
-      setError("Please enter a valid email address.");
+    if (!validatePassword(password)){
+      setError("Password must be a minimum of 8 characters and include a symbol and a number.");
       return;
     }
 
-    if (!validatePassword(password)) {
-      setError(
-        "Password has to be a minimum of 8 characters and include a symbol and number."
-      );
-      return;
-    }
-
-    if (password !== confirmPassword) {
+    if (password !== confirmPassword){
       setError("Passwords do not match.");
       return;
     }
 
-  alert("Registered successfully!");
-  };
+    setIsLoading(true);
+
+    try{
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          accountName: accountName.trim(),
+          email: email.toLocaleLowerCase(),
+          password,
+          role: accountType,
+        }),
+      });
+
+      const data = await res.json();
+
+      if(!res.ok) {
+        setError(data.error || 'Registration failed.');
+        return;
+      }
+
+      const signInResult = await signIn('credentials', {
+        email: email.toLowerCase(),
+        password,
+        redirect: false,
+      });
+
+      if (signInResult?.ok) {
+        router.push('/dashboard');
+        router.refresh();
+      } else {
+        setError("Invalid credentials. Please try again.");
+      }
+    } catch (error) {
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
-
     <div className="reg-page">
-      <div className="reg-header pt-[50px]">
-        
-        <Header />
-        <Footer />
-        <div className="fixed top-0 left-0 w-full h-[50px] bg-Yellow z-[100] flex items-center space-x-4 justify-end pr-4 ">
-          <Link href="/login"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-100">Login</button></Link>         
-          <Link href="/"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-100">Home</button></Link>
-        </div>
-        <div style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                zIndex: 200
-            }}>
-                <Link href="/">
-                    <img
-                        src="/Logo1.png"
-                        alt="Funding Logo"
-                        width={150}
-                        height={150}
-                        className="relative z-100"
-                    />
-                </Link>
-            </div>
+      <div className="reg-header">
         <h1 className="reg-title">Create your account</h1>
-        <p className="reg-subtitle">Join our platform and start connecting.</p>
+        <p className="reg-subtitle">Join our platform and start connecting</p>
       </div>
 
       <div className="reg-card">
@@ -90,8 +106,8 @@ export default function RegisterPage() {
         <div className="reg-role-grid">
           <button
             type="button"
-            className={`reg-role-tile ${role === "business" ? "is-active" : ""}`}
-            onClick={() => setRole("business")}
+            className={`reg-role-tile ${accountType === "business" ? "is-active" : ""}`}
+            onClick={() => setAccountType("business")}
           >
             <div className="reg-role-title">Corporate Partner</div>
             <div className="reg-role-desc">Company seeking partnerships</div>
@@ -99,8 +115,8 @@ export default function RegisterPage() {
 
           <button
             type="button"
-            className={`reg-role-tile ${role === "vcse" ? "is-active" : ""}`}
-            onClick={() => setRole("vcse")}
+            className={`reg-role-tile ${accountType === "vcse" ? "is-active" : ""}`}
+            onClick={() => setAccountType("vcse")}
           >
             <div className="reg-role-title">Community Organisation</div>
             <div className="reg-role-desc">Sports club, charity, or group</div>
@@ -108,6 +124,10 @@ export default function RegisterPage() {
         </div>
 
         <form className="reg-form" onSubmit={handleSubmit}>
+          <label className="reg-label">First Name <span className="reg-required">*</span></label>
+          <input className="reg-input" type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+          <label className="reg-label">Last Name <span className="reg-required">*</span></label>
+          <input className="reg-input" type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} />
           <label className="reg-label">
             Email address <span className="reg-required">*</span>
           </label>
@@ -119,12 +139,12 @@ export default function RegisterPage() {
           />
 
           <label className="reg-label">
-            {role === "business" ? "Business Name" : "Organisation Name"}{" "}
+            {accountType === "business" ? "Business Name" : "Organisation Name"}{" "}
             <span className="reg-required">*</span>
           </label>
-          <input className="reg-input" type="text" />
+          <input className="reg-input" type="text" value={accountName} onChange={(e) => setAccountName(e.target.value)}/>
 
-        <label className="reg-label">
+          <label className="reg-label">
             Password <span className="reg-required">*</span>
           </label>
           <div className="reg-password-wrapper">
@@ -143,7 +163,7 @@ export default function RegisterPage() {
             </button>
           </div>
 
-      <label className="reg-label">
+          <label className="reg-label">
             Confirm password <span className="reg-required">*</span>
           </label>
           <div className="reg-password-wrapper">

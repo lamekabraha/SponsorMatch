@@ -6,6 +6,8 @@ import "./login.css";
 import Header from "../Components/Header";
 import Footer from "../Components/Footer";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
+
 export default function LoginPage() {
 const router = useRouter();
 
@@ -21,32 +23,38 @@ const [error, setError] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
 
-    if (!validateEmail(email)) {
-      setError("Please enter a valid email address");
+    if(!validateEmail(email)) {
+      setError('Please enter a valid email address');
       return;
     }
 
-    if (password.trim().length === 0) {
-      setError("Please enter your password.");
+    if (password.trim().length === 0){
+      setError('Please enter your password');
       return;
     }
 
-// routing
-const lower = email.toLowerCase();
-const isVcse = lower.includes("vcse") || lower.includes("charity");
+    signIn('credentials', {
+      email: email.toLowerCase(),
+      password,
+      redirect: false,
+    }).then((result) => {
+      if (result?.error) {
+        setError("Invalid email or password.");
+        return;
+      }
 
-    if (isVcse) {
-      router.push("/vcse/dashboard"); // not made yet
-    } else {
-      router.push("/business/dashboard"); // not made yet
-    }
-  };
+      if (result?.ok) {
+        router.push("/dashboard");
+        router.refresh();
+      }
+    });
+  }
 
-  return (
-    <div className="log-page">
-      <div className="log-header">
+      return (
+        <div className="log-page">
+          <div className="log-header">
         <div className="reg-header pt-[50px]">
         
         <Header />
@@ -92,9 +100,9 @@ const isVcse = lower.includes("vcse") || lower.includes("charity");
           <div className="log-password-wrapper">
             <input
               className="log-input"
-            type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              type={typeof showPassword === "boolean" && showPassword ? "text" : "password"}
+              value={typeof password !== "undefined" ? password : ""}
+              onChange={(e) => typeof setPassword === "function" && setPassword(e.target.value)}
             />
             <button
               type="button"
