@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import "./dashboard.css";
+import Navbar from "../Components/Navbar";
+import Footer from "../Components/Footer";
 
 type Campaign = {
   id: string;
@@ -69,6 +71,8 @@ export default function DashboardPage() {
 
   return (
     <div className="page">
+      <Navbar />
+      <Footer />
       <main className="container">
         {}
         <section className="banner">
