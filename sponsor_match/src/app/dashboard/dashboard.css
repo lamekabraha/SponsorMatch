@@ -101,11 +101,22 @@ body {
 .btnDark {
   background: #0b0f19;
   color: #fff;
-  border-color: #0b0f19;
+  border: 1px solid #0b0f19;
   width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 0;
+  border-radius: 12px;
+  font-weight: 800;
+  text-decoration: none;
   box-shadow: 0 10px 24px rgba(11, 15, 25, 0.18);
 }
-.btnDark:hover { background: #111827; }
+
+.btnDark:hover {
+  background: #111827;
+}
+
 
 .statsGrid {
   margin-top: 16px;
