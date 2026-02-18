@@ -1,0 +1,201 @@
+:root {
+  --sm-yellow: #fed857;
+  --sm-black: #000;
+  --sm-white: #fff;
+  --sm-border: rgba(0, 0, 0, 0.12);
+}
+
+.ec-page {
+  min-height: 100vh;
+  background: var(--background, #ffffff);
+  color: var(--foreground, #171717);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  font-family: Arial, Helvetica, sans-serif;
+  margin-bottom: 40px;
+}
+
+.ec-header {
+  text-align: center; /*made header centered*/
+  margin-bottom: 18px;
+}
+
+.ec-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.ec-subtitle {
+margin: 8px 0 0;
+  font-size: 12px;
+  color: rgba(23, 23, 23, 0.65);
+}
+/* made it yellow and added a drop shadow */
+.ec-card {
+  width: 420px;
+  max-width: 92vw;
+  background: var(--sm-white);
+  border: 1px solid var(--sm-border);
+  border-top: 5px solid var(--sm-yellow);
+  border-radius: 10px;
+padding: 22px;
+box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+}
+
+.ec-small-label {
+margin: 0 0 12px;
+font-size: 13px;
+color: rgba(23, 23, 23, 0.75);
+}
+
+.ec-role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.ec-role-tile {
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  border-radius: 10px;
+  background: var(--sm-white);
+  padding: 18px 14px;
+  cursor: pointer;
+  text-align: center;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 120px;
+
+  /* used transition to add an animation which makes it modern */
+  transition: 0.2s ease;
+}
+
+/* hover effect turns fro */
+.ec-role-tile:hover {
+  transform: translateY(-2px);
+  border-color: var(--sm-yellow);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.06);
+}
+
+/* when u press it, its active and stays dark */
+.ec-role-tile.is-active {
+  background: rgba(23, 23, 23, 0.82);
+  border-color: rgba(23, 23, 23, 0.82);
+  color: var(--sm-white);
+}
+
+/*no animation when selected*/
+.ec-role-tile.is-active:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: rgba(23, 23, 23, 0.82);
+}
+
+.ec-role-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+
+.ec-role-desc {
+  font-size: 11px;
+  line-height: 1.3;
+  opacity: 0.85;
+}
+
+.ec-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ec-label {
+font-size: 12px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.ec-required {
+  color: var(--sm-yellow);
+  font-weight: 900;
+}
+
+.ec-input {
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  outline: none;
+  transition: 0.2s ease;
+}
+.ec-inputlarge{
+  height: 180px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  outline: none;
+  transition: 0.2s ease;
+}
+
+.ec-input:focus {
+  border-color: var(--sm-yellow);
+  box-shadow: 0 0 0 3px rgba(254, 216, 87, 0.35);
+}
+
+/*improved button, better w theme*/
+.ec-submit {
+margin-top: 14px;
+height: 42px;
+  border-radius: 8px;
+  border: 0;
+  background: var(--sm-yellow);
+  color: var(--sm-black);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  
+  transition: 0.2s ease;
+}
+
+.ec-submit:hover {
+  background: rgba(23, 23, 23, 0.9);
+  color: var(--sm-white);
+}
+
+.ec-toggle {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+  color: rgba(23, 23, 23, 0.7);
+  font-weight: 600;
+}
+
+.ec-toggle:hover {
+  color: var(--sm-yellow);
+}
+.back-btn {
+  position: absolute;
+  top: 60px;
+  left: 16px;
+  background: rgba(255, 207, 34, 0.995);
+  color: #000000;
+  padding: 8px 14px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  backdrop-filter: blur(4px);
+}
+
+.back-btn:hover {
+  background: rgb(255, 224, 111);
+}

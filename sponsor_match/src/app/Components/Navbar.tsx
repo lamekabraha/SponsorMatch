@@ -34,11 +34,12 @@ export default function Navbar() {
                     >
                      <div className="p-6 space-y-4">
                         <p className="font-Heading text-lg">Menu</p>
+                        <Link href="/dashboard" className="font-Heading hover:underline block mb-4"> Dashboard</Link>
+                        <Link href="/myaccount" className="font-Heading hover:underline block mb-4">My Account</Link>
                         <Link href="/search" className="font-Heading hover:underline block mb-4">Search</Link>
-                        <Link href="/...." className="font-Heading hover:underline block mb-4">My Account</Link>
-                        <Link href="/...." className="font-Heading hover:underline block mb-4"> Dashboard</Link>
-                        <Link href="/...." className="font-Heading hover:underline block mb-4">Create Campain</Link>
-                        <Link href="/...." className="font-Heading hover:underline block mb-4">Favourites</Link>
+                        <Link href="/newcampaign" className="font-Heading hover:underline block mb-4">Create Campaign</Link>
+                        <Link href="/campaign" className="font-Heading hover:underline block mb-4">My Campaign</Link>
+                        <Link href="/favourites" className="font-Heading hover:underline block mb-4">Favourites</Link>
                         <Link href="/" className="font-Heading hover:underline block mb-4">Logout</Link>
                      </div>   
                 </div>
