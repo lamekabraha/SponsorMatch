@@ -46,7 +46,7 @@ const [error, setError] = useState("");
       }
 
       if (result?.ok) {
-        router.push("/dashboard");
+        router.push("/register/onboarding/vcse/basic_info");
         router.refresh();
       }
     });
@@ -100,9 +100,9 @@ const [error, setError] = useState("");
           <div className="log-password-wrapper">
             <input
               className="log-input"
-              type={typeof showPassword === "boolean" && showPassword ? "text" : "password"}
-              value={typeof password !== "undefined" ? password : ""}
-              onChange={(e) => typeof setPassword === "function" && setPassword(e.target.value)}
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
             <button
               type="button"

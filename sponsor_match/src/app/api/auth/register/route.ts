@@ -8,14 +8,14 @@ export async function POST(request: Request) {
 
     try {
         const body = await request.json();
-        const { email, password, firstName, lastName, accountName, role } = body;
+        const { email, password, firstName, lastName, accountName, accountType } = body;
 
-        if (!email || !password || !firstName || !lastName || !accountName || !role) {
+        if (!email || !password || !firstName || !lastName || !accountName || !accountType) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
         // Logic based on provided organization types: 2 for VCSE, 1 for SME [cite: 1, 2, 5]
-        const accountTypeId = role.toLowerCase() === 'vcse' ? 2 : 1;
+        const accountTypeId = accountType.toLowerCase() === 'business' ? 1 : 2;
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Start Transaction
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
 
         // 1. Insert into Accounts table
         const [accountRows] = await connection.execute(
-            `INSERT INTO sponsor_match.account (Name, AccountType) VALUES (?, ?)`,
+            `INSERT INTO sponsor_match.account (Name, AccountTypeId) VALUES (?, ?)`,
             [accountName, accountTypeId]
         );
 

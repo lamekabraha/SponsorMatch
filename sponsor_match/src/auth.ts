@@ -11,7 +11,7 @@ interface userRow{
     LastName: string;
     Email: string;
     HashedPassword: string;
-    AccountType?:number;
+    AccountTypeId?:number;
 }
 
 const handler = NextAuth({
@@ -23,21 +23,22 @@ const handler = NextAuth({
                 password: { label: 'Password', type: 'password' },
             },
             async authorize(credentials) {
+                try {
                 const email = credentials?.email as string;
                 const password = credentials?.password as string;
 
                 if (!email || !password) {
                     return null;
-                };
+                }
 
                 const [rows] = await pool.execute(
-                    `SELECT u.UserId, u.AccountId, u.FirstName, u.LastName, u.Email, u.HashedPassword, a.AccountType
+                    `SELECT u.UserId, u.AccountId, u.FirstName, u.LastName, u.Email, u.HashedPassword, a.AccountTypeId
                      FROM sponsor_match.user u
                      JOIN sponsor_match.account a ON u.AccountId = a.AccountId
                      WHERE u.Email = ?`,
                     [email.toLowerCase()]
                   ) as [userRow[], any];
-                
+
                 const user = rows[0];
                 if (!user || !user.HashedPassword) {
                     return null;
@@ -48,10 +49,15 @@ const handler = NextAuth({
 
                 return {
                     id: String(user.UserId),
+                    accountId: user.AccountId,
                     email: user.Email,
                     name: `${user.FirstName} ${user.LastName}`,
-                    accountType: user.AccountType,
+                    accountTypeId: user.AccountTypeId,
                 };
+                } catch (err) {
+                    console.error('[auth] authorize error:', err);
+                    return null;
+                }
             },
         }),
     ],
