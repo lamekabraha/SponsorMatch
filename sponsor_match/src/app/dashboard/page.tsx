@@ -139,7 +139,9 @@ export default function DashboardPage() {
 
         <section className="titleRow">
           <h1 className="title">Your Campaigns Dashboard</h1>
-          <button className="btn btnPrimary">＋ Create Campaign</button>
+          <Link href="/newcampaign">
+            <button className="btn btnPrimary">＋ Create Campaign</button>
+          </Link>
         </section>
 
         <section className="statsGrid">

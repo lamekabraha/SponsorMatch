@@ -14,6 +14,9 @@ export default function Page() {
               <Link href="/dashboard" className="back-btn">
                 ← Back
               </Link>
+              <Link href="/editcampaign" className="edit-btn">
+              <button className="Edit-btn">Edit Campaign</button>
+              </Link>
             </div>
             <div className="hero-content">
               <h1>Basketball Community</h1>
@@ -136,8 +139,10 @@ export default function Page() {
                 <button className="contact-btn">Contact Organisation</button>
               </div>
             </aside>
+            <button className="clear-btn mb-4">Close Campaign</button>
           </div>
         </section>
+        
       </main>
       <Footer />
     </div>

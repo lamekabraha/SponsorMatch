@@ -53,77 +53,58 @@ const [error, setError] = useState("");
   }
 
       return (
+        <><Header />
+        <div className="fixed top-0 right-0 h-[50px] bg-Yellow z-[200] flex items-center space-x-4 justify-end pr-4 ">
+          <Link href="/register"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-200">Sign Up</button></Link>         
+          <Link href="/"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-200">Home</button></Link>
+        </div>
         <div className="log-page">
           <div className="log-header">
-        <div className="reg-header pt-[50px]">
-        
-        <Header />
-        <Footer />
-        <div className="fixed top-0 left-0 w-full h-[50px] bg-Yellow z-[100] flex items-center space-x-4 justify-end pr-4 ">
-          <Link href="/register"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-100">Sign Up</button></Link>         
-          <Link href="/"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-100">Home</button></Link>
-        </div>
-        <div style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                zIndex: 200
-            }}>
-                <Link href="/">
-                    <img
-                        src="/Logo1.png"
-                        alt="Funding Logo"
-                        width={150}
-                        height={150}
-                        className="relative z-100"
-                    />
-                </Link>
+            <div className="reg-header pt-[50px]">
+              <Footer />
+              <h1 className="log-title">Log In</h1>
             </div>
-        <h1 className="log-title">SponsorMatch</h1>
-    </div>
-    </div>
-      <div className="log-card">
-    <form className="log-form" onSubmit={handleSubmit}>
-          <label className="log-label">
-            Email address <span className="log-required">*</span>
-          </label>
-          <input
-            className="log-input"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-
-          <label className="log-label">
-            Password <span className="log-required">*</span>
-          </label>
-          <div className="log-password-wrapper">
-            <input
-              className="log-input"
-              type={typeof showPassword === "boolean" && showPassword ? "text" : "password"}
-              value={typeof password !== "undefined" ? password : ""}
-              onChange={(e) => typeof setPassword === "function" && setPassword(e.target.value)}
-            />
-            <button
-              type="button"
-              className="log-toggle"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? "Hide" : "Show"}
-            </button>
           </div>
+          <div className="log-card">
+            <form className="log-form" onSubmit={handleSubmit}>
+              <label className="log-label">
+                Email address <span className="log-required">*</span>
+              </label>
+              <input
+                className="log-input"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)} />
 
-          {error && <p className="log-error">{error}</p>}
+              <label className="log-label">
+                Password <span className="log-required">*</span>
+              </label>
+              <div className="log-password-wrapper">
+                <input
+                  className="log-input"
+                  type={typeof showPassword === "boolean" && showPassword ? "text" : "password"}
+                  value={typeof password !== "undefined" ? password : ""}
+                  onChange={(e) => typeof setPassword === "function" && setPassword(e.target.value)} />
+                <button
+                  type="button"
+                  className="log-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
 
-          <button className="log-submit" type="submit">
-            Log in
-          </button>
+              {error && <p className="log-error">{error}</p>}
 
-        <p className="log-bottom-text">
-            Don't have an account? <a href="/register">Register</a>
-          </p>
-        </form>
-      </div>
-    </div>
+              <button className="log-submit" type="submit">
+                Log in
+              </button>
+
+              <p className="log-bottom-text">
+                Don't have an account? <a href="/register">Register</a>
+              </p>
+            </form>
+          </div>
+        </div></>
   );
 }

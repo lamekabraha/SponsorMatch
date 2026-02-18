@@ -290,4 +290,33 @@ body {
 .back-btn:hover {
   background: rgb(255, 224, 111);
 }
+.clear-btn {
+  background: var(--color-Yellow);
+  color: var(--color-Black);
+  padding: 8px 14px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  backdrop-filter: blur(4px);;
+}
+.clear-btn:hover {
+  background: rgb(255, 224, 111);
+}
+.Edit-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(255, 207, 34, 0.995);
+  color: #000000;
+  padding: 8px 14px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  backdrop-filter: blur(4px);
+}
 
+.Edit-btn:hover {
+  background: rgb(255, 224, 111);
+}
