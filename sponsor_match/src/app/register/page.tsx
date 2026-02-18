@@ -35,183 +35,69 @@ export default function RegisterPage() {
     return passwordRegex.test(password);
   };
 
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setError("");
-    
-  //   if (!validateEmail(email)){
-  //     setError("Please Enter a valid email address.");
-  //     return;
-  //   }  
-
-  //   if (!validatePassword(password)){
-  //     setError("Password must be a minimum of 8 characters and include a symbol and a number.");
-  //     return;
-  //   }
-
-  //   if (password !== confirmPassword){
-  //     setError("Passwords do not match.");
-  //     return;
-  //   }
-
-  //   setIsLoading(true);
-
-  //   try{
-  //     const res = await fetch('/api/auth/register', {
-  //       method: 'POST',
-  //       headers: {"Content-Type": "application/json"},
-  //       body: JSON.stringify({
-  //         firstName: firstName.trim(),
-  //         lastName: lastName.trim(),
-  //         accountName: accountName.trim(),
-  //         email: email.toLocaleLowerCase(),
-  //         password,
-  //         role: accountType,
-  //       }),
-  //     });
-
-  //     const data = await res.json();
-
-  //     if(!res.ok) {
-  //       setError(data.error || 'Registration failed.');
-  //       return;
-  //     }
-
-  //     const signInResult = await signIn('credentials', {
-  //       email: email.toLowerCase(),
-  //       password,
-  //       redirect: false,
-  //     });
-
-  //     if (signInResult?.ok) {
-  //       router.push('/dashboard');
-  //       router.refresh();
-  //     } else {
-  //       setError("Invalid credentials. Please try again.");
-  //     }
-
-      
-  //   } catch (error) {
-  //     setError("An error occurred. Please try again.");
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // }
-
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError("");
+    e.preventDefault();
+    setError("");
+    
+    if (!validateEmail(email)){
+      setError("Please Enter a valid email address.");
+      return;
+    }  
 
-  // --- Client-side validation logs ---
-  console.group("REGISTER SUBMIT");
-  console.log("Raw values:", { firstName, lastName, accountName, email, passwordLen: password.length, confirmLen: confirmPassword.length, accountType });
-
-  const emailTrimmed = email.trim();
-  const emailLower = emailTrimmed.toLowerCase();
-  const firstTrim = firstName.trim();
-  const lastTrim = lastName.trim();
-  const accTrim = accountName.trim();
-
-  console.log("Trimmed values:", { firstTrim, lastTrim, accTrim, emailLower });
-
-  if (!firstTrim || !lastTrim || !accTrim || !emailTrimmed || !password || !confirmPassword) {
-    console.warn("Validation failed: missing required fields");
-    setError("Please fill in all required fields.");
-    console.groupEnd();
-    return;
-  }
-
-  if (!validateEmail(emailTrimmed)) {
-    console.warn("Validation failed: invalid email", emailTrimmed);
-    setError("Please Enter a valid email address.");
-    console.groupEnd();
-    return;
-  }
-
-  if (!validatePassword(password)) {
-    console.warn("Validation failed: weak password");
-    setError("Password must be a minimum of 8 characters and include a symbol and a number.");
-    console.groupEnd();
-    return;
-  }
-
-  if (password !== confirmPassword) {
-    console.warn("Validation failed: passwords do not match");
-    setError("Passwords do not match.");
-    console.groupEnd();
-    return;
-  }
-
-  setIsLoading(true);
-
-  // --- API call logs ---
-  const payload = {
-    firstName: firstTrim,
-    lastName: lastTrim,
-    accountName: accTrim,
-    email: emailLower,
-    password,
-    role: accountType,
-  };
-
-  console.log("POST /api/auth/register payload:", { ...payload, password: "***hidden***" });
-
-  try {
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    console.log("Register response status:", res.status, res.statusText);
-
-    // Read text first so we can log even if it's not valid JSON
-    const rawText = await res.text();
-    console.log("Register raw response text:", rawText);
-
-    let data: any = null;
-    try {
-      data = rawText ? JSON.parse(rawText) : null;
-    } catch {
-      console.warn("Response is not JSON");
-    }
-
-    console.log("Register parsed JSON:", data);
-
-    if (!res.ok) {
-      const msg = data?.error || data?.message || "Registration failed.";
-      console.error("Register failed:", msg);
-      setError(msg);
-      console.groupEnd();
+    if (!validatePassword(password)){
+      setError("Password must be a minimum of 8 characters and include a symbol and a number.");
       return;
     }
 
-    console.log("Register success. Attempting signIn...");
-
-    const signInResult = await signIn("credentials", {
-      email: emailLower,
-      password,
-      redirect: false,
-    });
-
-    console.log("signIn result:", signInResult);
-
-    if (signInResult?.ok) {
-      console.log("signIn OK -> redirect /dashboard");
-      router.push("/dashboard");
-      router.refresh();
-    } else {
-      console.warn("signIn failed after register");
-      setError("Invalid credentials. Please try again.");
+    if (password !== confirmPassword){
+      setError("Passwords do not match.");
+      return;
     }
-  } catch (err) {
-    console.error("Register request crashed:", err);
-    setError("An error occurred. Please try again.");
-  } finally {
-    setIsLoading(false);
-    console.groupEnd();
+
+    setIsLoading(true);
+
+    try{
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          accountName: accountName.trim(),
+          email: email.toLocaleLowerCase(),
+          password,
+          accountType,
+        }),
+      });
+
+      const data = await res.json();
+
+      if(!res.ok) {
+        setError(data.error || 'Registration failed.');
+        return;
+      }
+
+      const signInResult = await signIn('credentials', {
+        email: email.toLowerCase(),
+        password,
+        redirect: false,
+      });
+
+      if (signInResult?.ok) {
+        router.push('/dashboard');
+        router.refresh();
+      } else {
+        setError("Invalid credentials. Please try again.");
+      }
+
+      
+    } catch (error) {
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   }
-};
+
 
   
   return (
