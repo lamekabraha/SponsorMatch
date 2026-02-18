@@ -37,7 +37,8 @@ export default function Navbar() {
                         <Link href="/search" className="font-Heading hover:underline block mb-4">Search</Link>
                         <Link href="/...." className="font-Heading hover:underline block mb-4">My Account</Link>
                         <Link href="/dashboard" className="font-Heading hover:underline block mb-4"> Dashboard</Link>
-                        <Link href="/...." className="font-Heading hover:underline block mb-4">Create Campain</Link>
+                        <Link href="/newcampaign" className="font-Heading hover:underline block mb-4">Create Campaign</Link>
+                        <Link href="/campaign" className="font-Heading hover:underline block mb-4">My Campaign</Link>
                         <Link href="/...." className="font-Heading hover:underline block mb-4">Favourites</Link>
                         <Link href="/" className="font-Heading hover:underline block mb-4">Logout</Link>
                      </div>   
