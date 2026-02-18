@@ -21,15 +21,19 @@ export const authConfig: NextAuthOptions = {
         jwt({token, user}: {token: any; user: any}) {
             if (user){
                 token.id = user.id;
-                token.accountType = (user as{
-                    accountType?:number}).accountType;
+                token.accountTypeId = (user as{
+                    accountTypeId?:number}).accountTypeId;
+                token.accountId = (user as{
+                    accountId?:number}).accountId;
             }
             return token;
         },
         session({session, token}: {session: Session; token: any}) {
             if (session.user) {
+
                 (session.user as {id?: string}).id = token.id;
-                (session.user as {accountType?:number}).accountType = token.accountType;
+                (session.user as {accountTypeId?:number}).accountTypeId = token.accountTypeId;
+                (session.user as {accountId?:number}).accountId = token.accountId;
             }
             return session;
         },

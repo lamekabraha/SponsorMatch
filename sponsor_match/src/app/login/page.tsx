@@ -46,7 +46,7 @@ const [error, setError] = useState("");
       }
 
       if (result?.ok) {
-        router.push("/dashboard");
+        router.push("/register/onboarding/vcse/basic_info");
         router.refresh();
       }
     });
@@ -64,6 +64,38 @@ const [error, setError] = useState("");
               <Footer />
               <h1 className="log-title">Log In</h1>
             </div>
+        <h1 className="log-title">SponsorMatch</h1>
+    </div>
+    </div>
+      <div className="log-card">
+    <form className="log-form" onSubmit={handleSubmit}>
+          <label className="log-label">
+            Email address <span className="log-required">*</span>
+          </label>
+          <input
+            className="log-input"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+
+          <label className="log-label">
+            Password <span className="log-required">*</span>
+          </label>
+          <div className="log-password-wrapper">
+            <input
+              className="log-input"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              className="log-toggle"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? "Hide" : "Show"}
+            </button>
           </div>
           <div className="log-card">
             <form className="log-form" onSubmit={handleSubmit}>
