@@ -5,7 +5,7 @@
   --sm-border: rgba(0, 0, 0, 0.12);
 }
 
-.nc-page {
+.ec-page {
   min-height: 100vh;
   background: var(--background, #ffffff);
   color: var(--foreground, #171717);
@@ -18,24 +18,24 @@
   margin-bottom: 40px;
 }
 
-.nc-header {
+.ec-header {
   text-align: center; /*made header centered*/
   margin-bottom: 18px;
 }
 
-.nc-title {
+.ec-title {
   margin: 0;
   font-size: 26px;
   font-weight: 700;
 }
 
-.nc-subtitle {
+.ec-subtitle {
 margin: 8px 0 0;
   font-size: 12px;
   color: rgba(23, 23, 23, 0.65);
 }
 /* made it yellow and added a drop shadow */
-.nc-card {
+.ec-card {
   width: 420px;
   max-width: 92vw;
   background: var(--sm-white);
@@ -46,20 +46,20 @@ padding: 22px;
 box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
 }
 
-.nc-small-label {
+.ec-small-label {
 margin: 0 0 12px;
 font-size: 13px;
 color: rgba(23, 23, 23, 0.75);
 }
 
-.nc-role-grid {
+.ec-role-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
   margin-bottom: 18px;
 }
 
-.nc-role-tile {
+.ec-role-tile {
   border: 1px solid rgba(0, 0, 0, 0.35);
   border-radius: 10px;
   background: var(--sm-white);
@@ -77,56 +77,56 @@ color: rgba(23, 23, 23, 0.75);
 }
 
 /* hover effect turns fro */
-.nc-role-tile:hover {
+.ec-role-tile:hover {
   transform: translateY(-2px);
   border-color: var(--sm-yellow);
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.06);
 }
 
 /* when u press it, its active and stays dark */
-.nc-role-tile.is-active {
+.ec-role-tile.is-active {
   background: rgba(23, 23, 23, 0.82);
   border-color: rgba(23, 23, 23, 0.82);
   color: var(--sm-white);
 }
 
 /*no animation when selected*/
-.nc-role-tile.is-active:hover {
+.ec-role-tile.is-active:hover {
   transform: none;
   box-shadow: none;
   border-color: rgba(23, 23, 23, 0.82);
 }
 
-.nc-role-title {
+.ec-role-title {
   font-size: 13px;
   font-weight: 700;
   margin-bottom: 8px;
   line-height: 1.2;
 }
 
-.nc-role-desc {
+.ec-role-desc {
   font-size: 11px;
   line-height: 1.3;
   opacity: 0.85;
 }
 
-.nc-form {
+.ec-form {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-.nc-label {
+.ec-label {
 font-size: 12px;
   font-weight: 700;
   margin-top: 6px;
 }
 
-.nc-required {
+.ec-required {
   color: var(--sm-yellow);
   font-weight: 900;
 }
 
-.nc-input {
+.ec-input {
   height: 38px;
   padding: 0 12px;
   border-radius: 8px;
@@ -134,7 +134,7 @@ font-size: 12px;
   outline: none;
   transition: 0.2s ease;
 }
-.nc-inputlarge{
+.ec-inputlarge{
   height: 180px;
   padding: 0 12px;
   border-radius: 8px;
@@ -143,13 +143,13 @@ font-size: 12px;
   transition: 0.2s ease;
 }
 
-.nc-input:focus {
+.ec-input:focus {
   border-color: var(--sm-yellow);
   box-shadow: 0 0 0 3px rgba(254, 216, 87, 0.35);
 }
 
 /*improved button, better w theme*/
-.nc-submit {
+.ec-submit {
 margin-top: 14px;
 height: 42px;
   border-radius: 8px;
@@ -163,12 +163,12 @@ height: 42px;
   transition: 0.2s ease;
 }
 
-.nc-submit:hover {
+.ec-submit:hover {
   background: rgba(23, 23, 23, 0.9);
   color: var(--sm-white);
 }
 
-.nc-toggle {
+.ec-toggle {
   position: absolute;
   right: 10px;
   background: none;
@@ -179,7 +179,7 @@ height: 42px;
   font-weight: 600;
 }
 
-.nc-toggle:hover {
+.ec-toggle:hover {
   color: var(--sm-yellow);
 }
 .back-btn {

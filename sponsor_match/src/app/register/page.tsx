@@ -97,29 +97,13 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="reg-page">
-      <Header />
-      <Footer />
-      <div style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                zIndex: 200
-            }}>
-                <Link href="/">
-                    <img
-                        src="/Logo1.png"
-                        alt="Funding Logo"
-                        width={150}
-                        height={150}
-                        className="relative z-100"
-                    />
-                </Link>
-            </div>
-        <div className="fixed top-0 right-0 h-[50px] bg-Yellow z-[200] flex items-center space-x-4 justify-end pr-4 ">
+    <><Header />
+    <div className="fixed top-0 right-0 h-[50px] bg-Yellow z-[200] flex items-center space-x-4 justify-end pr-4 ">
           <Link href="/login"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-200">Login</button></Link>         
           <Link href="/"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-200">Home</button></Link>
         </div>
+    <div className="reg-page">
+      <Footer />
       <div className="reg-header">
         <h1 className="text-3xl font-Heading text-center mt-10">Create your account</h1>
         <p className="reg-subtitle">Join our platform and start connecting</p>
@@ -160,14 +144,13 @@ export default function RegisterPage() {
             className="reg-input"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+            onChange={(e) => setEmail(e.target.value)} />
 
           <label className="reg-label">
             {accountType === "business" ? "Business Name" : "Organisation Name"}{" "}
             <span className="reg-required">*</span>
           </label>
-          <input className="reg-input" type="text" value={accountName} onChange={(e) => setAccountName(e.target.value)}/>
+          <input className="reg-input" type="text" value={accountName} onChange={(e) => setAccountName(e.target.value)} />
 
           <label className="reg-label">
             Password <span className="reg-required">*</span>
@@ -177,8 +160,7 @@ export default function RegisterPage() {
               className="reg-input"
               type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+              onChange={(e) => setPassword(e.target.value)} />
             <button
               type="button"
               className="reg-toggle"
@@ -196,8 +178,7 @@ export default function RegisterPage() {
               className="reg-input"
               type={showConfirm ? "text" : "password"}
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
+              onChange={(e) => setConfirmPassword(e.target.value)} />
             <button
               type="button"
               className="reg-toggle"
@@ -214,6 +195,6 @@ export default function RegisterPage() {
           </button>
         </form>
       </div>
-    </div>
+    </div></>
   );
 }
