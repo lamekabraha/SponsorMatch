@@ -66,7 +66,7 @@ export default function RegisterPage() {
           accountName: accountName.trim(),
           email: email.toLocaleLowerCase(),
           password,
-          role: accountType,
+          accountType,
         }),
       });
 
