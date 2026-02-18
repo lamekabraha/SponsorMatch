@@ -2,6 +2,7 @@
 
 import "./dashboard.css";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
 
@@ -49,6 +50,8 @@ const campaigns: Campaign[] = [
   },
 ];
 
+const FAV_KEY = "sponsorMatch:favourites";
+
 function formatGBP(n: number) {
   return new Intl.NumberFormat("en-GB", {
     style: "currency",
@@ -62,7 +65,58 @@ function pct(raised: number, goal: number) {
   return Math.min(100, Math.round((raised / goal) * 100));
 }
 
+function readFavs(): string[] {
+  try {
+    const raw = localStorage.getItem(FAV_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeFavs(ids: string[]) {
+  localStorage.setItem(FAV_KEY, JSON.stringify(ids));
+}
+
+function StarIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="18"
+      height="18"
+      aria-hidden="true"
+      style={{ display: "block" }}
+    >
+      <path
+        d="M12 17.3l-6.18 3.7 1.64-7.03L2 9.24l7.19-.62L12 2l2.81 6.62 7.19.62-5.46 4.73 1.64 7.03z"
+        fill={filled ? "#fed857" : "none"}
+        stroke={filled ? "#0b0f19" : "#0b0f19"}
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export default function DashboardPage() {
+  const [favs, setFavs] = useState<string[]>([]);
+
+  useEffect(() => {
+    setFavs(readFavs());
+  }, []);
+
+  useEffect(() => {
+    writeFavs(favs);
+  }, [favs]);
+
+  const favCount = useMemo(() => favs.length, [favs]);
+
+  function toggleFav(id: string) {
+    setFavs((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
+
   return (
     <div className="page">
       <Navbar />
@@ -73,6 +127,14 @@ export default function DashboardPage() {
             <span className="bannerValue">Currently viewing as</span>
             <strong className="bannerStrong">VCSE</strong>
           </div>
+
+          <Link
+            href="/favourites"
+            className="btn btnGhost"
+            style={{ textDecoration: "none", fontWeight: 900 }}
+          >
+            ★ Favourites ({favCount})
+          </Link>
         </section>
 
         <section className="titleRow">
@@ -114,11 +176,37 @@ export default function DashboardPage() {
           {campaigns.map((c) => {
             const progress = pct(c.raised, c.goal);
             const needed = Math.max(0, c.goal - c.raised);
+            const isFav = favs.includes(c.id);
 
             return (
               <article key={c.id} className="card">
                 <div className="cardImage">
                   <img src={c.imageUrl} alt={c.title} />
+
+                  <button
+                    type="button"
+                    onClick={() => toggleFav(c.id)}
+                    aria-label={isFav ? "Remove from favourites" : "Add to favourites"}
+                    title={isFav ? "Unfavourite" : "Favourite"}
+                    style={{
+                      position: "absolute",
+                      top: 12,
+                      left: 12,
+                      width: 38,
+                      height: 38,
+                      borderRadius: 12,
+                      border: "1px solid rgba(11,15,25,0.16)",
+                      background: "rgba(255,255,255,0.9)",
+                      backdropFilter: "blur(6px)",
+                      display: "grid",
+                      placeItems: "center",
+                      cursor: "pointer",
+                      boxShadow: "0 10px 22px rgba(11,15,25,0.12)",
+                    }}
+                  >
+                    <StarIcon filled={isFav} />
+                  </button>
+
                   <span className="goalPill">Goal: {formatGBP(c.goal)}</span>
                 </div>
 
