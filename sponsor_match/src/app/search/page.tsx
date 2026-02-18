@@ -189,10 +189,10 @@ export default function SearchPage() {
                 step={500}
                 value={maxBudget}
                 onChange={(e) => setMaxBudget(Number(e.target.value))}
-                className="mt-3 w-full"
+                className="mt-3 accent-Black w-full"
               />
 
-              <div className="mt-1 flex justify-between text-xs font-bold">
+              <div className="mt-1 flex justify-between text- text-xs font-bold">
                 <span>£1,000</span>
                 <span>£20,000</span>
               </div>
