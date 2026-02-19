@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const CHEVRON_ICON = (
     <svg xmlns="http://www.w3.org/2000/svg" className="w-4 fill-Black inline ml-2" viewBox="0 0 24 24">
@@ -19,7 +19,12 @@ const FOCUS_AREAS = [
     { value: 'community', label: 'Community Development' },
 ];
 
-export default function BasicInfoForm() {
+interface BasicInfoFormProps {
+    onComplete?: () => void;
+}
+
+export default function BasicInfoForm({ onComplete }: BasicInfoFormProps) {
+    const router = useRouter();
     const [orgType, setOrgType] = useState('');
     const [orgAddress, setOrgAddress] = useState('');
     const [primaryFocusAreas, setPrimaryFocusAreas] = useState<string[]>([]);
@@ -49,97 +54,130 @@ export default function BasicInfoForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const formData = new FormData(e.target as HTMLFormElement);
-        const data = Object.fromEntries(formData);
-        console.log({ ...data, primaryFocusAreas });
+        
+        if (!orgAddress?.trim() || primaryFocusAreas.length === 0) {
+            alert('Please fill in Organisation Address and Primary Focus Area.');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/auth/register/onboarding/vcse/basic_info', {
+                method: 'POST',
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    orgType,
+                    orgAddress,
+                    primaryFocusAreas,
+                    regNumber,
+                }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+                alert(data.error || 'Failed to save. Please try again.');
+                return;
+            }
+            if (onComplete) {
+                onComplete();
+            } else {
+                router.push('/register/onboarding/vcse/branding');
+                router.refresh();
+            }
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            alert('An error occurred. Please try again.');
+
+        }
     };
 
+    const inputClass = "w-full h-[38px] px-3 rounded-lg border border-Black/45 font-Body text-Black bg-White placeholder:text-Black/50 focus:outline-none focus:border-Yellow focus:ring-[3px] focus:ring-Yellow/35 transition duration-200";
+    const labelClass = "text-xs font-bold mt-1.5 font-Body text-Black block";
+    const requiredSpan = <span className="text-Yellow font-black">*</span>;
+
     return (
-        <form className="space-y-5" onSubmit={handleSubmit}>
-            <label className="font-Body text-base text-Black block">
-                <span className="text-Black hidden sm:inline">Organisation Type *</span>
-                <select
-                    name="orgType"
-                    className="w-full mt-2 px-4 py-3 border border-Black/20 rounded-md font-Body text-Black bg-White focus:outline-none focus:ring-2 focus:ring-Yellow focus:border-transparent"
-                    value={orgType}
-                    onChange={(e) => setOrgType(e.target.value)}
+        <form className="flex flex-col gap-2.5" onSubmit={handleSubmit}>
+            <label className={labelClass}>
+                Organisation Type {requiredSpan}
+            </label>
+            <select
+                name="orgType"
+                className={`${inputClass} py-0`}
+                value={orgType}
+                onChange={(e) => setOrgType(e.target.value)}
+            >
+                <option value="">Select organisation type.</option>
+                <option value="business">Business</option>
+                <option value="vcse">VCSE / Charity</option>
+            </select>
+
+            <label className={labelClass}>
+                Organisation Address {requiredSpan}
+            </label>
+            <input
+                name="orgAddress"
+                type="text"
+                className={inputClass}
+                placeholder="Enter your organisation's address"
+                value={orgAddress}
+                onChange={(e) => setOrgAddress(e.target.value)}
+            />
+
+            <label className={labelClass}>
+                Primary Focus Area {requiredSpan}
+            </label>
+            <div ref={focusDropdownRef} className="relative">
+                <button
+                    type="button"
+                    onClick={() => setFocusDropdownOpen(!focusDropdownOpen)}
+                    className={`w-full h-[38px] px-3 rounded-lg border font-Body text-left flex items-center justify-between ${inputClass}`}
                 >
-                    <option value="">Select organisation type.</option>
-                    <option value="business">Business</option>
-                    <option value="vcse">VCSE / Charity</option>
-                </select>
-            </label>
-
-            <label className="font-Body text-base text-Black block">
-                <span className="text-Black hidden sm:inline">Organisation Address *</span>
-                <input
-                    name="orgAddress"
-                    type="text"
-                    className="w-full mt-2 px-4 py-3 border border-Black/20 rounded-md font-Body text-Black placeholder:text-Black/50 bg-White focus:outline-none focus:ring-2 focus:ring-Yellow focus:border-transparent"
-                    placeholder="Enter your organisation's address"
-                    value={orgAddress}
-                    onChange={(e) => setOrgAddress(e.target.value)}
-                />
-            </label>
-
-            <label className="font-Body text-base text-Black block">
-                <span className="text-Black hidden sm:inline">Primary Focus Area *</span>
-                <div ref={focusDropdownRef} className="relative mt-2">
-                    <button
-                        type="button"
-                        onClick={() => setFocusDropdownOpen(!focusDropdownOpen)}
-                        className="w-full px-4 py-3 border border-Black/20 rounded-md font-Body text-Black bg-White focus:outline-none focus:ring-2 focus:ring-Yellow focus:border-transparent text-left flex items-center justify-between"
-                    >
-                        <span className={primaryFocusAreas.length === 0 ? 'text-Black/50' : ''}>
-                            {displayLabel}
-                        </span>
-                        {CHEVRON_ICON}
-                    </button>
-                    {focusDropdownOpen && (
-                        <ul className="absolute z-10 w-full mt-1 py-2 bg-White border border-Black/20 rounded-md shadow-lg max-h-60 overflow-auto">
-                            {FOCUS_AREAS.map((area) => (
-                                <li
-                                    key={area.value}
-                                    onClick={() => toggleFocusArea(area.value)}
-                                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-Yellow/20 cursor-pointer"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={primaryFocusAreas.includes(area.value)}
-                                        readOnly
-                                        className="w-4 h-4 rounded border-Black/30 text-Yellow focus:ring-Yellow"
-                                    />
-                                    {area.label}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                    {primaryFocusAreas.map((v) => (
-                        <input key={v} type="hidden" name="primaryFocusAreas" value={v} />
-                    ))}
-                </div>
-            </label>
-
-            <label className="font-Body text-base text-Black block ">
-                <span className="text-Black hidden sm:inline">Charity Registration Number *</span>
-                <input
-                    name="regNumber"
-                    type="text"
-                    className="w-full mt-2 px-4 py-3 border border-Black/20 rounded-md font-Body text-Black placeholder:text-Black/50 bg-White focus:outline-none focus:ring-2 focus:ring-Yellow focus:border-transparent"
-                    value={regNumber}
-                    placeholder="charity registration number"
-                    onChange={(e) => setRegNumber(e.target.value)}
-                />
-            </label>
-
-            <div className="flex justify-end pt-4">
-                <Link
-                    href="/register/onboarding/branding"
-                    className="px-6 py-3 bg-[var(--color-Grey-dark)] text-White font-Body font-medium rounded-md hover:opacity-90 transition-opacity"
-                >
-                    Next
-                </Link>
+                    <span className={primaryFocusAreas.length === 0 ? 'text-Black/50' : 'text-Black'}>
+                        {displayLabel}
+                    </span>
+                    {CHEVRON_ICON}
+                </button>
+                {focusDropdownOpen && (
+                    <ul className="absolute z-10 w-full mt-1 py-2 bg-White border border-Black/20 rounded-lg shadow-lg max-h-60 overflow-auto font-Body">
+                        {FOCUS_AREAS.map((area) => (
+                            <li
+                                key={area.value}
+                                onClick={() => toggleFocusArea(area.value)}
+                                className="flex items-center gap-3 px-4 py-2.5 hover:bg-Yellow/20 cursor-pointer"
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={primaryFocusAreas.includes(area.value)}
+                                    readOnly
+                                    className="w-4 h-4 rounded border-Black/30 text-Yellow focus:ring-Yellow"
+                                />
+                                {area.label}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+                {primaryFocusAreas.map((v) => (
+                    <input key={v} type="hidden" name="primaryFocusAreas" value={v} />
+                ))}
             </div>
+
+            <label className={labelClass}>
+                Charity Registration Number {requiredSpan}
+            </label>
+            <input
+                name="regNumber"
+                type="text"
+                className={inputClass}
+                value={regNumber}
+                placeholder="charity registration number"
+                onChange={(e) => setRegNumber(e.target.value)}
+            />
+
+            <button
+                type="submit"
+                className="mt-3.5 h-[42px] rounded-lg border-0 bg-Yellow text-Black font-Body font-bold text-sm hover:bg-Black/90 hover:text-White transition duration-200"
+            >
+                Next
+            </button>
         </form>
     );
 }

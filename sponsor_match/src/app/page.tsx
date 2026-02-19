@@ -6,6 +6,7 @@ import { faPeopleGroup } from '@fortawesome/free-solid-svg-icons';
 import { faHeart} from '@fortawesome/free-solid-svg-icons';
 import { faBuilding } from '@fortawesome/free-solid-svg-icons';
 import { faSquarePollVertical } from '@fortawesome/free-solid-svg-icons';
+
 import Link from 'next/link';
 import Footer from './Components/Footer';
 import Header from './Components/Header';

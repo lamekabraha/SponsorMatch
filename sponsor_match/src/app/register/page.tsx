@@ -8,11 +8,9 @@ import Header from "../Components/Header";
 import Footer from "../Components/Footer";
 import Link from "next/link";
 
-type Role = "business" | "vcse";
-
 export default function RegisterPage() {
   const router = useRouter();
-  const [accountType, setAccountType] = useState<Role>("business");
+  const [accountType, setAccountType] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -83,8 +81,11 @@ export default function RegisterPage() {
         redirect: false,
       });
 
-      if (signInResult?.ok) {
-        router.push('/dashboard');
+      if (signInResult?.ok && accountType === "vcse") {
+        router.push('/register/onboarding');
+        router.refresh();
+      } else if (signInResult?.ok && accountType === "business") {
+        router.push('/register/onboarding');
         router.refresh();
       } else {
         setError("Invalid credentials. Please try again.");
