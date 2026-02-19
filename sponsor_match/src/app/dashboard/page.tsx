@@ -118,8 +118,9 @@ export default function DashboardPage() {
   }
 
   return (
+    <><Navbar />
     <div className="page">
-      <Navbar />
+      
       <Footer />
       <main className="container">
         <section className="banner">
@@ -245,5 +246,6 @@ export default function DashboardPage() {
         </section>
       </main>
     </div>
+    </>
   );
 }
