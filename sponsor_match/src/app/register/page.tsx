@@ -89,6 +89,8 @@ export default function RegisterPage() {
       } else {
         setError("Invalid credentials. Please try again.");
       }
+
+      
     } catch (error) {
       setError("An error occurred. Please try again.");
     } finally {
@@ -96,6 +98,8 @@ export default function RegisterPage() {
     }
   }
 
+
+  
   return (
     <><Header />
     <div className="fixed top-0 right-0 h-[50px] bg-Yellow z-[200] flex items-center space-x-4 justify-end pr-4 ">
