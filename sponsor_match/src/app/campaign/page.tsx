@@ -6,8 +6,8 @@ import Footer from "../Components/Footer";
 
 export default function Page() {
   return (
+    <><Navbar />
     <div className="campaign-page">
-      <Navbar />
       <main>
         <section className="page-container">
           <div className="hero-card">
@@ -147,5 +147,6 @@ export default function Page() {
       </main>
       <Footer />
     </div>
+    </>
   );
 }

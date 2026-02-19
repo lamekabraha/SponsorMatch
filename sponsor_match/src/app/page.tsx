@@ -29,7 +29,7 @@ export default function HomePage(){
           <img
             src="/LandingPageImage2.png"
             alt="Side Image"
-            className="fixed right-0 top-[50px] h-[calc(100%-50px)] object-cover z-[50]"/>
+            className="hide-mobile fixed right-0 top-[50px] h-[calc(100%-50px)] object-cover z-[50]"/>
         </div>
       <div className="flex pr-10 mt-20">
         <div className="w-full max-w-md mx-auto ml-20 text-center">

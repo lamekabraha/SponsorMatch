@@ -3,11 +3,12 @@ import Link from "next/link";
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleUser } from "@fortawesome/free-solid-svg-icons";
+import "./Navbar.css";
 
 export default function Navbar() {
     return (
         <>
-            <h1 className="text-3xl font-Heading text-center mt-0 relative z-200">Sponsor Match</h1>
+            <h1 className="hide-mobile fixed text-3xl font-Heading text-center top-0 relative z-200">Sponsor Match</h1>
             <div style={{
                 position: "fixed",
                 top: 0,

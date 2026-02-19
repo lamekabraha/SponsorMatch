@@ -115,7 +115,7 @@ export default function SearchPage() {
     <div className="min-h-screen bg-white text-[#0b1324]">
       <Navbar />
 
-      <main className="mx-auto max-w-[1200px] px-4 pb-20 pt-6">
+      <main className="mt-[52px] mx-auto max-w-[1200px] px-4 pb-20 pt-6">
        
         <section className="rounded-2xl border border-black/10 bg-[#fffdf2] p-5 shadow-[0_10px_26px_rgba(11,15,25,0.06)]">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
