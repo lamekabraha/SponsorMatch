@@ -64,7 +64,12 @@ const [error, setError] = useState("");
           <div className="log-header">
             <div className="reg-header pt-[50px]">
               <h1 className="log-title">Log In</h1>
+<<<<<<< Updated upstream
             </div>          
+=======
+            </div>
+            <h1 className="log-title">SponsorMatch</h1>
+>>>>>>> Stashed changes
           </div>
       <div className="log-card">
             <form className="log-form" onSubmit={handleSubmit}>
@@ -75,7 +80,8 @@ const [error, setError] = useState("");
                 className="log-input"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)} />
+                onChange={(e) => setEmail(e.target.value)}
+              />
 
               <label className="log-label">
                 Password <span className="log-required">*</span>
@@ -83,9 +89,10 @@ const [error, setError] = useState("");
               <div className="log-password-wrapper">
                 <input
                   className="log-input"
-                  type={typeof showPassword === "boolean" && showPassword ? "text" : "password"}
-                  value={typeof password !== "undefined" ? password : ""}
-                  onChange={(e) => typeof setPassword === "function" && setPassword(e.target.value)} />
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
                 <button
                   type="button"
                   className="log-toggle"
@@ -102,11 +109,16 @@ const [error, setError] = useState("");
               </button>
 
               <p className="log-bottom-text">
-                Don't have an account? <a href="/register">Register</a>
+                Don&apos;t have an account? <Link href="/register">Register</Link>
               </p>
             </form>
             </div>
           </div>
+<<<<<<< Updated upstream
         </>
+=======
+        </div>
+      </>
+>>>>>>> Stashed changes
   );
 }
