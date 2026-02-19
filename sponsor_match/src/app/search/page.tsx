@@ -166,7 +166,7 @@ export default function SearchPage() {
                       type="checkbox"
                       checked={selectedCategories.includes(cat)}
                       onChange={() => toggleCategory(cat)}
-                      className="h-4 w-4"
+                      className="accent-Black text-White h-4 w-4"
                     />
                     <span className="font-semibold">{cat}</span>
                   </label>
