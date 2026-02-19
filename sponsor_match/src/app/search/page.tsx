@@ -207,6 +207,7 @@ export default function SearchPage() {
                 className="w-full rounded-2xl border border-black/15 bg-white px-4 py-3 font-bold"
               >
                 <option value="any">Any distance</option>
+                <option value="5">Within 5 miles</option>
                 <option value="10">Within 10 miles</option>
                 <option value="20">Within 20 miles</option>
                 <option value="50">Within 50 miles</option>
