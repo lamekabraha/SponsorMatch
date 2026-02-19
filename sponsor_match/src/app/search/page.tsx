@@ -115,7 +115,7 @@ export default function SearchPage() {
     <div className="min-h-screen bg-white text-[#0b1324]">
       <Navbar />
 
-      <main className="mx-auto max-w-[1200px] px-4 pb-20 pt-6">
+      <main className="mt-[52px] mx-auto max-w-[1200px] px-4 pb-20 pt-6">
        
         <section className="rounded-2xl border border-black/10 bg-[#fffdf2] p-5 shadow-[0_10px_26px_rgba(11,15,25,0.06)]">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -166,7 +166,7 @@ export default function SearchPage() {
                       type="checkbox"
                       checked={selectedCategories.includes(cat)}
                       onChange={() => toggleCategory(cat)}
-                      className="h-4 w-4"
+                      className="accent-Black text-White h-4 w-4"
                     />
                     <span className="font-semibold">{cat}</span>
                   </label>
@@ -189,7 +189,7 @@ export default function SearchPage() {
                 step={500}
                 value={maxBudget}
                 onChange={(e) => setMaxBudget(Number(e.target.value))}
-                className="mt-3 w-full"
+                className="mt-3 accent-Black w-full"
               />
 
               <div className="mt-1 flex justify-between text-xs font-bold">
@@ -207,6 +207,7 @@ export default function SearchPage() {
                 className="w-full rounded-2xl border border-black/15 bg-white px-4 py-3 font-bold"
               >
                 <option value="any">Any distance</option>
+                <option value="5">Within 5 miles</option>
                 <option value="10">Within 10 miles</option>
                 <option value="20">Within 20 miles</option>
                 <option value="50">Within 50 miles</option>
