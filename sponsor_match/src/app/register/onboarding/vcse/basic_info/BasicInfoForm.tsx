@@ -23,14 +23,27 @@ interface BasicInfoFormProps {
     onComplete?: () => void;
 }
 
+type OrgTypeOption = { VcseTypeId: number; Name: string };
+
 export default function BasicInfoForm({ onComplete }: BasicInfoFormProps) {
     const router = useRouter();
     const [orgType, setOrgType] = useState('');
+    const [orgTypeOptions, setOrgTypeOptions] = useState<OrgTypeOption[]>([]);
     const [orgAddress, setOrgAddress] = useState('');
     const [primaryFocusAreas, setPrimaryFocusAreas] = useState<string[]>([]);
     const [focusDropdownOpen, setFocusDropdownOpen] = useState(false);
     const focusDropdownRef = useRef<HTMLDivElement>(null);
     const [regNumber, setRegNumber] = useState('');
+
+    useEffect(() => {
+        fetch('/api/auth/register/onboarding/OrgTypes')
+            .then((res) => res.json())
+            .then((data) => {
+                if (Array.isArray(data)) setOrgTypeOptions(data);
+                else if (data?.error) console.error(data.error);
+            })
+            .catch((err) => console.error('Failed to fetch org types:', err));
+    }, []);
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -106,8 +119,11 @@ export default function BasicInfoForm({ onComplete }: BasicInfoFormProps) {
                 onChange={(e) => setOrgType(e.target.value)}
             >
                 <option value="">Select organisation type.</option>
-                <option value="business">Business</option>
-                <option value="vcse">VCSE / Charity</option>
+                {orgTypeOptions.map((opt) => (
+                        <option key={opt.VcseTypeId} value={opt.VcseTypeId}>
+                            {opt.Name}
+                        </option>
+                    ))}
             </select>
 
             <label className={labelClass}>
