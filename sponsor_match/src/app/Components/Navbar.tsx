@@ -14,7 +14,8 @@ export default function Navbar() {
                 left: 0,
                 width: "100%",
                 height: "50px",
-                backgroundColor: "#fed857"
+                backgroundColor: "#fed857",
+                zIndex: 50
             }} />
             
             <div className="fixed top-0 left-0 z-200 group"> 
