@@ -64,12 +64,7 @@ const [error, setError] = useState("");
           <div className="log-header">
             <div className="reg-header pt-[50px]">
               <h1 className="log-title">Log In</h1>
-<<<<<<< Updated upstream
             </div>          
-=======
-            </div>
-            <h1 className="log-title">SponsorMatch</h1>
->>>>>>> Stashed changes
           </div>
       <div className="log-card">
             <form className="log-form" onSubmit={handleSubmit}>
@@ -114,11 +109,6 @@ const [error, setError] = useState("");
             </form>
             </div>
           </div>
-<<<<<<< Updated upstream
         </>
-=======
-        </div>
-      </>
->>>>>>> Stashed changes
   );
 }
