@@ -6,6 +6,7 @@ import { faPeopleGroup } from '@fortawesome/free-solid-svg-icons';
 import { faHeart} from '@fortawesome/free-solid-svg-icons';
 import { faBuilding } from '@fortawesome/free-solid-svg-icons';
 import { faSquarePollVertical } from '@fortawesome/free-solid-svg-icons';
+
 import Link from 'next/link';
 import Footer from './Components/Footer';
 import Header from './Components/Header';
@@ -20,34 +21,16 @@ export default function HomePage(){
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <h1 className="text-3xl font-Heading text-center mt-0 relative z-200">Sponsor Match</h1>
-      <main className="flex-grow pt-[50px] pb-32">
-      
-      <div style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                zIndex: 200
-            }}>
-                <Link href="/">
-                    <img
-                        src="/Logo1.png"
-                        alt="Funding Logo"
-                        width={150}
-                        height={150}
-                        className="relative z-100"
-                    />
-                </Link>
-            </div>
-        <div className="fixed top-0 right-0 h-[50px] bg-Yellow z-[200] flex items-center space-x-4 justify-end pr-4 ">
+      <div className="fixed top-0 right-0 h-[50px] bg-Yellow z-[200] flex items-center space-x-4 justify-end pr-4 ">
           <Link href="/login"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-200">Login</button></Link>         
           <Link href="/register"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-200">Sign Up</button></Link>
         </div>
+      <main className="flex-grow pt-[50px] pb-32">
         <div>
           <img
             src="/LandingPageImage2.png"
             alt="Side Image"
-            className="fixed right-0 top-[50px] h-[calc(100%-50px)] object-cover z-[50]"/>
+            className="hide-mobile fixed right-0 top-[50px] h-[calc(100%-50px)] object-cover z-[50]"/>
         </div>
       <div className="flex pr-10 mt-20">
         <div className="w-full max-w-md mx-auto ml-20 text-center">
