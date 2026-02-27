@@ -1,8 +1,13 @@
 import NextAuth from 'next-auth';
+import { getServerSession } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import bcrypt from 'bcrypt';
-import {pool} from '@/lib/db';
-import {authConfig} from '../auth.config';
+import { pool } from '@/lib/db';
+import { authConfig } from '../auth.config';
+
+export async function getSession() {
+  return getServerSession(authConfig);
+}
 
 interface userRow{
     UserId: number;
