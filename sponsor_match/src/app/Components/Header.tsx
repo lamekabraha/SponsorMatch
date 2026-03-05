@@ -3,37 +3,18 @@ import "./Header.css";
 
 export default function Header() {
     return (
-        <>
-        
-            <div style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "50px",
-                backgroundColor: "#fed857",
-                zIndex: 50
-            }} />
-            <h1 className="hide-mobile text-3xl font-Heading text-center mt-0 relative z-200">Sponsor Match</h1>
-            <div style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                zIndex: 200
-            }}>
-                <Link href="/">
-                    <img
-                        src="/Logo1.png"
-                        alt="Funding Logo"
-                        width={150}
-                        height={150}
-                        className="relative z-100"
-                    />
-                </Link>
-            </div>
-            
-        <div></div>
-        </>
+        <div className='bg-Yellow w-full flex sticky top-0 left-0'>
+            <Link href="/" className="w-5/12">
+                <img
+                    src="/Logo1.png"
+                    alt="Funding Logo"
+                    width={175}
+                    height={175}
+                    className="justify-start"
+                />
+            </Link>
+            <h1 className="hidden sm:flex sm:w-7/12 text-3xl my-auto">SponsorMatch</h1>
+        </div>
     );
 }
            
