@@ -1,15 +1,11 @@
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import { authConfig } from "../../../../auth.config";
 import OnboardingWizard from './OnboardingWizard';
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
+import { getSession } from '@/auth';
+
 export default async function OnboardingPage() {
-    const session = await getServerSession(authConfig);
-    if (!session) {
-        redirect('/login');
-    }
-    const accountTypeId = (session.user as { accountTypeId?: number })?.accountTypeId ?? 2;
+    const session = await getSession();
+    const accountTypeId = (session?.user as { accountTypeId?: number })?.accountTypeId ?? 2;
     const accountType = (accountTypeId === 1 ? 1 : 2) as 1 | 2;
 
     return (
@@ -27,7 +23,7 @@ export default async function OnboardingPage() {
             <div className="bg-White border border-Black/12 border-t-[5px] border-t-Yellow rounded-[10px] p-6 shadow-[0_8px_25px_rgba(0,0,0,0.05)]">
                 <OnboardingWizard accountType={accountType} />
             </div>
-        </div>
+            </div>
         </>
     );
 }
