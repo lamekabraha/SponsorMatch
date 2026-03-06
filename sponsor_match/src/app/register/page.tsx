@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import "./register.css";
 import {signIn} from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Header from "../Components/Header";
@@ -102,100 +101,131 @@ export default function RegisterPage() {
 
   
   return (
-    <><Header />
-    <div className="fixed top-0 right-0 h-[50px] bg-Yellow z-[200] flex items-center space-x-4 justify-end pr-4 ">
-          <Link href="/login"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-200">Login</button></Link>         
-          <Link href="/"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-200">Home</button></Link>
-        </div>
-    <div className="reg-page">
-      <Footer />
-      <div className="reg-header">
+    <>
+    <div className="z-[100] fixed w-full">
+      <Header/>
+      <div className="fixed top-0 right-0 h-[50px] bg-Yellow z-[200] flex items-center space-x-4 justify-end pr-4 ">
+        <Link href="/login"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-200">Login</button></Link>         
+        <Link href="/"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-200">Home</button></Link>
+      </div>
+    </div>
+    <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center py-10 px-4 font-sans sm:fixed sm:left-0 sm:right-0 sm:top-0 sm:bottom-0 sm:z-[1]">
+      <div className="text-center mb-5">
         <h1 className="text-3xl font-Heading text-center mt-10">Create your account</h1>
-        <p className="reg-subtitle">Join our platform and start connecting</p>
+        <p className="mt-2 text-xs text-neutral-800/65">Join our platform and start connecting</p>
       </div>
 
-      <div className="reg-card">
-        <p className="reg-small-label">I am a:</p>
+      <div className="w-[420px] max-w-[92vw] bg-white border border-black/10 border-t-4 border-t-[#fed857] rounded-[10px] p-[22px] shadow-[0_8px_25px_rgba(0,0,0,0.05)]">
+        <p className="m-0 mb-3 text-[13px] text-neutral-800/75">I am a:</p>
 
-        <div className="reg-role-grid">
+        <div className="grid grid-cols-2 gap-3.5 mb-5">
           <button
             type="button"
-            className={`reg-role-tile ${accountType === "business" ? "is-active" : ""}`}
+            className={`border rounded-[10px] bg-white p-4 cursor-pointer text-center flex flex-col justify-center min-h-[120px] transition duration-200 ease-in-out ${
+              accountType === "business"
+                ? "bg-neutral-900/80 border-neutral-900/80 text-white hover:translate-y-0 hover:shadow-none"
+                : "border-black/35 hover:-translate-y-0.5 hover:border-[#fed857] hover:shadow-[0_10px_22px_rgba(0,0,0,0.06)]"
+            }`}
             onClick={() => setAccountType("business")}
           >
-            <div className="reg-role-title">Corporate Partner</div>
-            <div className="reg-role-desc">Company seeking partnerships</div>
+            <div className="text-[13px] font-bold mb-2 leading-tight">Corporate Partner</div>
+            <div className="text-[11px] leading-snug opacity-85">Company seeking partnerships</div>
           </button>
 
           <button
             type="button"
-            className={`reg-role-tile ${accountType === "vcse" ? "is-active" : ""}`}
+            className={`border rounded-[10px] bg-white p-4 cursor-pointer text-center flex flex-col justify-center min-h-[120px] transition duration-200 ease-in-out ${
+              accountType === "vcse"
+                ? "bg-neutral-900/80 border-neutral-900/80 text-white hover:translate-y-0 hover:shadow-none"
+                : "border-black/35 hover:-translate-y-0.5 hover:border-[#fed857] hover:shadow-[0_10px_22px_rgba(0,0,0,0.06)]"
+            }`}
             onClick={() => setAccountType("vcse")}
           >
-            <div className="reg-role-title">Community Organisation</div>
-            <div className="reg-role-desc">Sports club, charity, or group</div>
+            <div className="text-[13px] font-bold mb-2 leading-tight">Community Organisation</div>
+            <div className="text-[11px] leading-snug opacity-85">Sports club, charity, or group</div>
           </button>
         </div>
 
-        <form className="reg-form" onSubmit={handleSubmit}>
-          <label className="reg-label">First Name <span className="reg-required">*</span></label>
-          <input className="reg-input" type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-          <label className="reg-label">Last Name <span className="reg-required">*</span></label>
-          <input className="reg-input" type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} />
-          <label className="reg-label">
-            Email address <span className="reg-required">*</span>
+        <form className="flex flex-col gap-2.5" onSubmit={handleSubmit}>
+          <label className="text-xs font-bold mt-1.5">First Name <span className="text-[#fed857] font-black">*</span></label>
+          <input
+            className="h-[38px] px-3 rounded-lg border border-black/45 outline-none transition duration-200 focus:border-[#fed857] focus:ring-[3px] focus:ring-[#fed857]/35"
+            type="text"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+          />
+          <label className="text-xs font-bold mt-1.5">Last Name <span className="text-[#fed857] font-black">*</span></label>
+          <input
+            className="h-[38px] px-3 rounded-lg border border-black/45 outline-none transition duration-200 focus:border-[#fed857] focus:ring-[3px] focus:ring-[#fed857]/35"
+            type="text"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+          />
+          <label className="text-xs font-bold mt-1.5">
+            Email address <span className="text-[#fed857] font-black">*</span>
           </label>
           <input
-            className="reg-input"
+            className="h-[38px] px-3 rounded-lg border border-black/45 outline-none transition duration-200 focus:border-[#fed857] focus:ring-[3px] focus:ring-[#fed857]/35"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)} />
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-          <label className="reg-label">
+          <label className="text-xs font-bold mt-1.5">
             {accountType === "business" ? "Business Name" : "Organisation Name"}{" "}
-            <span className="reg-required">*</span>
+            <span className="text-[#fed857] font-black">*</span>
           </label>
-          <input className="reg-input" type="text" value={accountName} onChange={(e) => setAccountName(e.target.value)} />
+          <input
+            className="h-[38px] px-3 rounded-lg border border-black/45 outline-none transition duration-200 focus:border-[#fed857] focus:ring-[3px] focus:ring-[#fed857]/35"
+            type="text"
+            value={accountName}
+            onChange={(e) => setAccountName(e.target.value)}
+          />
 
-          <label className="reg-label">
-            Password <span className="reg-required">*</span>
+          <label className="text-xs font-bold mt-1.5">
+            Password <span className="text-[#fed857] font-black">*</span>
           </label>
-          <div className="reg-password-wrapper">
+          <div className="relative flex items-center">
             <input
-              className="reg-input"
+              className="h-[38px] w-full pr-12 px-3 rounded-lg border border-black/45 outline-none transition duration-200 focus:border-[#fed857] focus:ring-[3px] focus:ring-[#fed857]/35"
               type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(e) => setPassword(e.target.value)} />
+              onChange={(e) => setPassword(e.target.value)}
+            />
             <button
               type="button"
-              className="reg-toggle"
+              className="absolute right-2.5 bg-transparent border-none text-xs cursor-pointer text-neutral-800/70 font-semibold hover:text-[#fed857]"
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? "Hide" : "Show"}
             </button>
           </div>
 
-          <label className="reg-label">
-            Confirm password <span className="reg-required">*</span>
+          <label className="text-xs font-bold mt-1.5">
+            Confirm password <span className="text-[#fed857] font-black">*</span>
           </label>
-          <div className="reg-password-wrapper">
+          <div className="relative flex items-center">
             <input
-              className="reg-input"
+              className="h-[38px] w-full pr-12 px-3 rounded-lg border border-black/45 outline-none transition duration-200 focus:border-[#fed857] focus:ring-[3px] focus:ring-[#fed857]/35"
               type={showConfirm ? "text" : "password"}
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)} />
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
             <button
               type="button"
-              className="reg-toggle"
+              className="absolute right-2.5 bg-transparent border-none text-xs cursor-pointer text-neutral-800/70 font-semibold hover:text-[#fed857]"
               onClick={() => setShowConfirm(!showConfirm)}
             >
               {showConfirm ? "Hide" : "Show"}
             </button>
           </div>
 
-          {error && <p style={{ color: "red", fontSize: "12px" }}>{error}</p>}
+          {error && <p className="text-red-600 text-xs">{error}</p>}
 
-          <button className="reg-submit" type="submit">
+          <button
+            className="mt-3.5 h-[42px] rounded-lg border-0 bg-[#fed857] text-black cursor-pointer font-bold text-sm transition duration-200 hover:bg-neutral-900/90 hover:text-white"
+            type="submit"
+          >
             Sign up
           </button>
         </form>

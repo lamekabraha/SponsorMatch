@@ -21,7 +21,7 @@
 
 @font-face {
   font-family: 'Etna';
-  src: url('/fonts/etna.otf');
+  src: url('/fonts/etna-regular.otf');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -32,6 +32,15 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+h1{
+  font-family: var(--font-Heading);
+}
+
+p{
+  font-family: var(--font-Body);
+}
+
 .hide-mobile {
   display: none;
 }
