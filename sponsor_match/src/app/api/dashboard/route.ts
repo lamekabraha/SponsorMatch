@@ -29,7 +29,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth-config';
-import { getSession } from '@/auth';
+import { toStorageRelativePath } from '@/lib/storage';
 import { QueryResult } from 'mysql2';
 
 // session helper
@@ -102,14 +102,18 @@ async function GetEngagement(accountId:number): Promise<number> {
     return engagementPercent;
 }
 
-async function GetCampaignData(accountId:number): Promise<QueryResult> {
-    
+async function GetCampaignData(accountId: number): Promise<any[]> {
     const [rows] = await pool.execute(
-        `Select * from campaign where AccountId = 26`
-    )
-
-    const result = rows
-    return result
+        `SELECT c.CampaignName, c.CoverImage, c.GoalAmount, sum(d.Amount) as Raised, c.Status, t.Type, t.Description
+        FROM campaign c
+		inner join campaign_type t on t.CampaignTypeId = c.CampaignTypeId
+        inner join donation d on d.CampaignId = c.CampaignId
+        WHERE AccountId = ? 
+        group by c.CampaignId`,
+        [accountId]
+    );
+    const campaigns = rows as any[];
+    return campaigns;
 }
 
 export async function GET(request: NextRequest) {

@@ -63,3 +63,24 @@ export function resolveStoragePath(relativePath: string): string {
   }
   return resolved;
 }
+
+/**
+ * Normalize a stored CoverImage (or any file) value to a relative path for use with
+ * resolveStoragePath and /api/files/[...path]. Accepts either:
+ * - Full path: C:\...\STORAGE\accounts\26\CampaignCover\204Cover.png
+ * - Relative path: accounts/26/CampaignCover/204Cover.png
+ * Returns the path with forward slashes, or null if empty/invalid.
+ */
+export function toStorageRelativePath(
+  storedValue: string | null | undefined
+): string | null {
+  if (storedValue == null || String(storedValue).trim() === "") return null;
+  const raw = String(storedValue).trim();
+  const normalized = raw.replace(/\\/g, "/");
+  const accountsIndex = normalized.indexOf("accounts/");
+  if (accountsIndex !== -1) {
+    return normalized.slice(accountsIndex);
+  }
+  if (normalized.startsWith("accounts")) return normalized;
+  return null;
+}

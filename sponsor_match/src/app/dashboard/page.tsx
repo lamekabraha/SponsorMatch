@@ -20,12 +20,13 @@ interface DashboardData {
 
 type Campaign = {
   id: string;
-  title: string;
-  org: string;
-  category: string;
-  raised: number;
-  goal: number;
-  imageUrl: string;
+  CampaignName: string;
+  CoverImage: string;
+  GoalAmount: number;
+  Raised: number;
+  Status: number;
+  Type: string;
+  Description: string;
 };
 
 // const campaigns: Campaign[] = [
@@ -216,11 +217,15 @@ export default function DashboardPage() {
             <article key={campaign.CampaignId} className="card">
               <DashboardCampaignCard
                 title={campaign.CampaignName}
-                category="Campaign"
-                org=""
-                deadline={new Date(campaign.CreatedAt).toLocaleDateString("en-GB")}
-                raised={0}
+                category={campaign.Type}
+                raised={campaign.Raised}
                 goal={Number(campaign.GoalAmount ?? 0)}
+                status={campaign.Status}
+                coverImageUrl={
+                  campaign.CoverImage
+                    ? `/api/files/${campaign.CoverImage}`
+                    : null
+                }
               />
             </article>
           ))}

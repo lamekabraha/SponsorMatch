@@ -4,11 +4,13 @@ import path from "path";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth-config";
 import { resolveStoragePath } from "@/lib/storage";
+// This file defines the API route handler for file-related operations in a Next.js application.
+// It supports authenticated and authorized access to files stored on the server,
+// using user sessions (via next-auth) to ensure users only access their own storage tree.
+// The file also includes logic for determining file MIME types and serving files based on path parameters.
 
 type RouteParams = {
-  params: {
-    path: string[];
-  };
+  params: Promise<{ path: string[] }>;
 };
 
 async function getAccountId(): Promise<number | null> {
@@ -48,7 +50,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     );
   }
 
-  const relativePath = params.path.join("/");
+  const { path: pathSegments } = await params;
+  const relativePath = pathSegments.join("/");
 
   // Ensure users can only access their own account storage tree
   const allowedPrefix = `accounts/${accountId}/`;
