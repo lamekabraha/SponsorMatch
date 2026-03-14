@@ -45,10 +45,10 @@ const [error, setError] = useState("");
       }
 
       if (result?.ok) {
-        router.push("/register/onboarding/vcse/basic_info");
+        router.push("/dashboard");
         router.refresh();
       }
-    });
+  });
   }
 
   return (

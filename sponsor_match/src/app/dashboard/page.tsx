@@ -5,50 +5,62 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
+import { DashboardDataCard } from "../Components/DashboardDataCard";
+import { DashboardCampaignCard } from "../Components/DashboardCampaignCard";
+
+interface DashboardData {
+  totalRaised: number;
+  activeCampaign: number;
+  connections: number | null;
+  averageEngagement: number;
+  campaigns: any[];
+}
+
+
 
 type Campaign = {
   id: string;
-  title: string;
-  org: string;
-  category: string;
-  deadline: string;
-  raised: number;
-  goal: number;
-  imageUrl: string;
+  CampaignName: string;
+  CoverImage: string;
+  GoalAmount: number;
+  Raised: number;
+  Status: number;
+  Type: string;
+  Description: string;
 };
 
-const campaigns: Campaign[] = [
-  {
-    id: "1",
-    title: "Basketball Community",
-    org: "Sports For All",
-    category: "Sports",
-    deadline: "11/03/2026",
-    raised: 2000,
-    goal: 5000,
-    imageUrl: "/campaigns/basketball.jpg",
-  },
-  {
-    id: "2",
-    title: "Coding Team",
-    org: "Tech Made Easy",
-    category: "Education",
-    deadline: "11/14/2023",
-    raised: 4500,
-    goal: 10000,
-    imageUrl: "/campaigns/coding.jpg",
-  },
-  {
-    id: "3",
-    title: "Homeless Support Initiative",
-    org: "Shelter Plus",
-    category: "Poverty Relief",
-    deadline: "11/03/2026",
-    raised: 2000,
-    goal: 5000,
-    imageUrl: "/campaigns/homeless.jpg",
-  },
-];
+// const campaigns: Campaign[] = [
+//   {
+//     id: "1",
+//     title: "Basketball Community",
+//     org: "Sports For All",
+//     category: "Sports",
+//     deadline: "11/03/2026",
+//     raised: 2000,
+//     goal: 5000,
+//     imageUrl: "/campaigns/basketball.jpg",
+//   },
+//   {
+//     id: "2",
+//     title: "Coding Team",
+//     org: "Tech Made Easy",
+//     category: "Education",
+//     deadline: "11/14/2023",
+//     raised: 4500,
+//     goal: 10000,
+//     imageUrl: "/campaigns/coding.jpg",
+//   },
+//   {
+//     id: "3",
+//     title: "Homeless Support Initiative",
+//     org: "Shelter Plus",
+//     category: "Poverty Relief",
+//     deadline: "11/03/2026",
+//     raised: 2000,
+//     goal: 5000,
+//     imageUrl: "/campaigns/homeless.jpg",
+//   },
+// ];
 
 const FAV_KEY = "sponsorMatch:favourites";
 
@@ -103,6 +115,38 @@ function StarIcon({ filled }: { filled: boolean }) {
 export default function DashboardPage() {
   const [favs, setFavs] = useState<string[]>([]);
 
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [isLoading, SetIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+
+  useEffect(() => {
+  const fetchDashboardData = async () => {
+    try{
+      const response = await fetch('/api/dashboard');
+
+      if (!response.ok) {
+        throw new Error('Failed to load dashboard data');
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        setDashboardData(result.data);
+      }else{
+        throw new Error(result.error || 'Unknown error occurred');
+      }
+    }catch (error: any){
+      setError(error.message)
+    }finally{
+      SetIsLoading(false);
+    }
+  };
+  fetchDashboardData();
+  }, [])
+  
+  console.log(dashboardData)
+
   useEffect(() => {
     setFavs(readFavs());
   }, []);
@@ -120,48 +164,41 @@ export default function DashboardPage() {
   return (
     <><Navbar />
     <div className="page">
-      
-      <Footer />
-      <main className="container">
-        <section className="banner">
-          <div className="bannerLeft">
-            <span className="bannerValue">Currently viewing as</span>
-            <strong className="bannerStrong">VCSE</strong>
-          </div>
-
-          <Link
-            href="/favourites"
-            className="btn btnGhost"
-            style={{ textDecoration: "none", fontWeight: 900 }}
-          >
-            ★ Favourites ({favCount})
-          </Link>
-        </section>
+      <main className="container ">
+        
 
         <section className="titleRow">
           <h1 className="title">Your Campaigns Dashboard</h1>
-          <Link href="/newcampaign">
-            <button className="btn btnPrimary">＋ Create Campaign</button>
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href="/favourites"
+              className="btn btnGhost text-decoration-none font-weight-900"
+            >
+              ★ Favourites ({favCount})
+            </Link>
+            <Link href="/newcampaign">
+              <button className="btn btnPrimary">＋ Create Campaign</button>
+            </Link>
+          </div>
         </section>
 
         <section className="statsGrid">
-          <div className="statCard">
-            <div className="statLabel">Total Raised</div>
-            <div className="statValue">{formatGBP(8500)}</div>
-          </div>
-          <div className="statCard">
-            <div className="statLabel">Active Campaigns</div>
-            <div className="statValue">3</div>
-          </div>
-          <div className="statCard">
-            <div className="statLabel">Connections</div>
-            <div className="statValue">12</div>
-          </div>
-          <div className="statCard">
-            <div className="statLabel">Avg. Engagement</div>
-            <div className="statValue">87%</div>
-          </div>
+          <DashboardDataCard
+            title="Total Raised"
+            data={formatGBP(dashboardData?.totalRaised ?? 0)}
+          />
+          <DashboardDataCard
+            title="Active Campaigns"
+            data={(dashboardData?.activeCampaign ?? 0).toString()}
+          />
+          <DashboardDataCard
+            title="Connections"
+            data={(dashboardData?.connections ?? 0).toString()}
+          />
+          <DashboardDataCard
+            title="Avg. Engagement"
+            data={`${Math.round(dashboardData?.averageEngagement ?? 0)}%`}
+          />
         </section>
 
         <section className="filters">
@@ -176,73 +213,22 @@ export default function DashboardPage() {
         </section>
 
         <section className="grid">
-          {campaigns.map((c) => {
-            const progress = pct(c.raised, c.goal);
-            const needed = Math.max(0, c.goal - c.raised);
-            const isFav = favs.includes(c.id);
-
-            return (
-              <article key={c.id} className="card">
-                <div className="cardImage">
-                  <img src={c.imageUrl} alt={c.title} />
-
-                  <button
-                    type="button"
-                    onClick={() => toggleFav(c.id)}
-                    aria-label={isFav ? "Remove from favourites" : "Add to favourites"}
-                    title={isFav ? "Unfavourite" : "Favourite"}
-                    style={{
-                      position: "absolute",
-                      top: 12,
-                      left: 12,
-                      width: 38,
-                      height: 38,
-                      borderRadius: 12,
-                      border: "1px solid rgba(11,15,25,0.16)",
-                      background: "rgba(255,255,255,0.9)",
-                      backdropFilter: "blur(6px)",
-                      display: "grid",
-                      placeItems: "center",
-                      cursor: "pointer",
-                      boxShadow: "0 10px 22px rgba(11,15,25,0.12)",
-                    }}
-                  >
-                    <StarIcon filled={isFav} />
-                  </button>
-
-                  <span className="goalPill">Goal: {formatGBP(c.goal)}</span>
-                </div>
-
-                <div className="cardBody">
-                  <div className="cardMeta">
-                    <span className="pill">{c.category}</span>
-                    <span className="deadline">Deadline: {c.deadline}</span>
-                  </div>
-
-                  <h3 className="cardTitle">{c.title}</h3>
-                  <div className="cardOrg">{c.org}</div>
-
-                  <div className="budgetInfo">
-                    <span>Raised: {formatGBP(c.raised)}</span>
-                    <span>Goal: {formatGBP(c.goal)}</span>
-                    <span className="needed">Still Needed: {formatGBP(needed)}</span>
-                  </div>
-
-                  <div className="cardActions">
-                    {c.id === "1" ? (
-                      <Link href="/campaign" className="btn btnDark">
-                        Read More
-                      </Link>
-                    ) : (
-                      <button type="button" className="btn btnDark">
-                        Read More
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </article>
-            );
-          })}
+          {(dashboardData?.campaigns ?? []).map((campaign: any) => (
+            <article key={campaign.CampaignId} className="card">
+              <DashboardCampaignCard
+                title={campaign.CampaignName}
+                category={campaign.Type}
+                raised={campaign.Raised}
+                goal={Number(campaign.GoalAmount ?? 0)}
+                status={campaign.Status}
+                coverImageUrl={
+                  campaign.CoverImage
+                    ? `/api/files/${campaign.CoverImage}`
+                    : null
+                }
+              />
+            </article>
+          ))}
         </section>
       </main>
     </div>
