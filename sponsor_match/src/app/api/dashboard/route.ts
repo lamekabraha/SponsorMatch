@@ -31,6 +31,7 @@ import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth-config';
 import { toStorageRelativePath } from '@/lib/storage';
 import { QueryResult } from 'mysql2';
+import { promises } from 'dns';
 
 // session helper
 async function GetAccountId(): Promise<number | null> {
@@ -104,7 +105,7 @@ async function GetEngagement(accountId:number): Promise<number> {
 
 async function GetCampaignData(accountId: number): Promise<any[]> {
     const [rows] = await pool.execute(
-        `SELECT c.CampaignName, c.CoverImage, c.GoalAmount, sum(d.Amount) as Raised, c.Status, t.Type, t.Description
+        `SELECT c.CampaignId, c.CampaignName, c.CoverImage, c.GoalAmount, sum(d.Amount) as Raised, c.Status, t.Type, t.Description
         FROM campaign c
 		inner join campaign_type t on t.CampaignTypeId = c.CampaignTypeId
         inner join donation d on d.CampaignId = c.CampaignId
@@ -114,6 +115,15 @@ async function GetCampaignData(accountId: number): Promise<any[]> {
     );
     const campaigns = rows as any[];
     return campaigns;
+}
+
+async function GetCampaignTypes(accountId: number): Promise<any[]>{
+    const [rows] = await pool.execute(
+        `select * from campaign_type`
+    );
+
+    const campaignType = rows as any[];
+    return campaignType;
 }
 
 export async function GET(request: NextRequest) {
@@ -130,13 +140,15 @@ export async function GET(request: NextRequest) {
             activeCampaigns, 
             connections,
             averageEngagement,
-            campaign
+            campaign,
+            campaignType
         ] = await Promise.all([
             GetTotalRaisedCount(accountId),
             GetActiveCampaignCount(accountId),
             GetConnectionsCount(accountId),
             GetEngagement(accountId),
-            GetCampaignData(accountId)
+            GetCampaignData(accountId),
+            GetCampaignTypes(accountId)
         ]);
 
         return NextResponse.json({
@@ -147,7 +159,8 @@ export async function GET(request: NextRequest) {
                 activeCampaign: activeCampaigns,
                 connections: connections,
                 averageEngagement: averageEngagement,
-                campaigns: campaign
+                campaigns: campaign,
+                campaignTypes: campaignType
             }
         });
     }catch (error) {
