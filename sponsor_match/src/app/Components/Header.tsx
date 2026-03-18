@@ -9,7 +9,7 @@ export default function Header() {
                     src="/Logo1.png"
                     alt="Funding Logo"
                     width={175}
-                    height={175}
+                    height='auto'
                     className="justify-start"
                 />
             </Link>
