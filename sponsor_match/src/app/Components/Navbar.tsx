@@ -16,7 +16,7 @@ export default function Navbar() {
                     src="/Logo1.png"
                     alt="Funding Logo"
                     width={175}
-                    height={175}
+                    height="auto"
                     className="justify-start "
                 />
                 <div 

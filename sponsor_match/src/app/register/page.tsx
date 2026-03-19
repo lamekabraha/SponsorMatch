@@ -103,14 +103,14 @@ export default function RegisterPage() {
   
   return (
     <>
-    <div className="z-[100] fixed w-full">
+    <div className="z-100 fixed w-full">
       <Header/>
-      <div className="fixed top-0 right-0 h-[50px] bg-Yellow z-[200] flex items-center space-x-4 justify-end pr-4 ">
+      <div className="fixed top-0 right-0 h-[50px] bg-Yellow z-200 flex items-center space-x-4 justify-end pr-4 ">
         <Link href="/login"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-200">Login</button></Link>         
         <Link href="/"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-200">Home</button></Link>
       </div>
     </div>
-    <div className="reg-page sm:fixed sm:left-0 sm:right-0 sm:top-0 sm:bottom-0 sm:z-[1]">
+    <div className="reg-page sm:fixed sm:left-0 sm:right-0 sm:top-0 sm:bottom-0 sm:z-1">
       <div className="reg-header">
         <h1 className="text-3xl font-Heading text-center mt-10">Create your account</h1>
         <p className="reg-subtitle">Join our platform and start connecting</p>
