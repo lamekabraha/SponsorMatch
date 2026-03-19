@@ -108,7 +108,7 @@ async function GetCampaignData(accountId: number): Promise<any[]> {
         `SELECT c.CampaignId, c.CampaignName, c.CoverImage, c.GoalAmount, sum(d.Amount) as Raised, c.Status, t.Type, t.Description
         FROM campaign c
 		inner join campaign_type t on t.CampaignTypeId = c.CampaignTypeId
-        inner join donation d on d.CampaignId = c.CampaignId
+        left join donation d on d.CampaignId = c.CampaignId
         WHERE AccountId = ? 
         group by c.CampaignId`,
         [accountId]
