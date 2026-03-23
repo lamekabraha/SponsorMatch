@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Navbar from "../Components/Navbar";
+import Footer from "../Components/Footer";
 import "./myaccount.css";
 
 export default function MyAccountPage() {
@@ -357,6 +358,7 @@ export default function MyAccountPage() {
           </div>
         </div>
       </div>
+      <Footer/>         
     </>
   );
 }
