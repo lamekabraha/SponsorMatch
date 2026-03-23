@@ -12,25 +12,48 @@ export default function MyAccountPage() {
     phone: "+44 7123 456789",
     email: "bob23@example.com",
     bio: "Content creator focused on gaming, lifestyle and brand partnerships.",
+
+    // onboarding / business preferences
+    companyAddress: "123 Oxford Street, London",
+    industry: "technology",
+    companySize: "11-50",
+    website: "https://bobmedia.co.uk",
   });
 
   const [savedMessage, setSavedMessage] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSavedMessage("Your account details have been updated.");
-    setTimeout(() => setSavedMessage(""), 3000);
+
+    try {
+      // personal info save
+      // onboarding preferences save
+      // connect these to your real backend routes when ready
+
+      // Example:
+      // await fetch("/api/account/update", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify(form),
+      // });
+
+      setSavedMessage("Your account details and onboarding preferences have been updated.");
+      setTimeout(() => setSavedMessage(""), 3000);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to save changes.");
+    }
   };
 
   const handleDeleteAccount = () => {
-    alert("Delete account logic goes here.");
+    alert("delete account logic goes here");
   };
 
   return (
@@ -43,7 +66,7 @@ export default function MyAccountPage() {
             <div className="accountBannerLeft">
               <span className="accountBannerLabel">Account Settings</span>
               <span className="accountBannerValue">
-                Manage your personal details, email, and account preferences.
+                Manage your personal details, email, and onboarding preferences.
               </span>
             </div>
           </div>
@@ -52,8 +75,7 @@ export default function MyAccountPage() {
             <div>
               <h1 className="accountTitle">My Account</h1>
               <p className="accountSubtitle">
-                Keep your profile information up to date for better
-                matches.
+                Keep your profile information and business preferences up to date for better matches.
               </p>
             </div>
           </div>
@@ -147,6 +169,85 @@ export default function MyAccountPage() {
                   />
                 </div>
 
+                <div className="sectionDivider" />
+
+                <div className="sectionHeader smallHeader">
+                  <h2>Onboarding Preferences</h2>
+                  <p>Update the business details you originally added during onboarding.</p>
+                </div>
+
+                <div className="formGroup">
+                  <label htmlFor="companyAddress">Company Address</label>
+                  <input
+                    id="companyAddress"
+                    name="companyAddress"
+                    type="text"
+                    value={form.companyAddress}
+                    onChange={handleChange}
+                    className="accountInput"
+                    placeholder="Enter your company address"
+                  />
+                </div>
+
+                <div className="formGrid">
+                  <div className="formGroup">
+                    <label htmlFor="industry">Industry</label>
+                    <select
+                      id="industry"
+                      name="industry"
+                      value={form.industry}
+                      onChange={handleChange}
+                      className="accountSelect"
+                    >
+                      <option value="">Select industry</option>
+                      <option value="agriculture">Agriculture</option>
+                      <option value="construction">Construction</option>
+                      <option value="education">Education</option>
+                      <option value="finance">Finance</option>
+                      <option value="health">Health</option>
+                      <option value="technology">Technology</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <div className="formGroup">
+                    <label htmlFor="companySize">Company Size</label>
+                    <select
+                      id="companySize"
+                      name="companySize"
+                      value={form.companySize}
+                      onChange={handleChange}
+                      className="accountSelect"
+                    >
+                      <option value="">Select company size</option>
+                      <option value="1-10">1-10</option>
+                      <option value="11-50">11-50</option>
+                      <option value="51-100">51-100</option>
+                      <option value="101-500">101-500</option>
+                      <option value="501-1000">501-1000</option>
+                      <option value="1001-5000">1001-5000</option>
+                      <option value="5001-10000">5001-10000</option>
+                      <option value="10001-50000">10001-50000</option>
+                      <option value="50001-100000">50001-100000</option>
+                      <option value="100001-500000">100001-500000</option>
+                      <option value="500001-1000000">500001-1000000</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="formGroup">
+                  <label htmlFor="website">Website</label>
+                  <input
+                    id="website"
+                    name="website"
+                    type="text"
+                    value={form.website}
+                    onChange={handleChange}
+                    className="accountInput"
+                    placeholder="Enter your company website"
+                  />
+                </div>
+
                 {savedMessage && (
                   <div className="successMessage">{savedMessage}</div>
                 )}
@@ -188,6 +289,21 @@ export default function MyAccountPage() {
                     <span className="overviewLabel">Phone</span>
                     <span className="overviewValue">{form.phone}</span>
                   </div>
+
+                  <div className="overviewItem">
+                    <span className="overviewLabel">Industry</span>
+                    <span className="overviewValue">{form.industry || "Not set"}</span>
+                  </div>
+
+                  <div className="overviewItem">
+                    <span className="overviewLabel">Company Size</span>
+                    <span className="overviewValue">{form.companySize || "Not set"}</span>
+                  </div>
+
+                  <div className="overviewItem">
+                    <span className="overviewLabel">Website</span>
+                    <span className="overviewValue">{form.website || "Not set"}</span>
+                  </div>
                 </div>
               </div>
 
@@ -200,8 +316,8 @@ export default function MyAccountPage() {
                 <div className="dangerBox">
                   <p>
                     Deleting your profile will permanently remove all of your
-                    data such as your email address and account details. This
-                    action can't be undone.
+                    data such as your email address, onboarding preferences, and
+                    account details. This action can't be undone.
                   </p>
 
                   {!deleteConfirm ? (
