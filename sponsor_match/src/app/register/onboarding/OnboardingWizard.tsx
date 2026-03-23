@@ -21,13 +21,11 @@ const VCSE_STEPS: StepConfig[] = [
     { id: 1, title: 'Basic', component: BasicInfoForm },
     { id: 2, title: 'Branding', component: BrandingForm },
     { id: 3, title: 'Contact', component: ContactForm },
-    { id: 4, title: 'Verification', component: VerificationForm },
 ];
 
 const BUSINESS_STEPS: StepConfig[] = [
     { id: 1, title: 'Company Details', component: BusinessBasicInfoForm },
     { id: 2, title: 'Branding', component: BusinessBrandingForm },
-    { id: 3, title: 'Preferences', component: Preferences },
 ];
 
 interface OnboardingWizardProps {
