@@ -1,0 +1,323 @@
+:root {
+  --yellow: #fed857;
+  --bg: #f6f7fb;
+  --text: #111827;
+  --muted: #6b7280;
+  --card: #ffffff;
+  --border: #e5e7eb;
+  --danger: #dc2626;
+  --danger-bg: #fff5f5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: #0b0f19;
+  background: #ffffff;
+}
+
+.accountPage {
+  margin-top: 52px;
+  min-height: 100vh;
+}
+
+.accountContainer {
+  max-width: 1200px;
+  margin: 18px auto 60px;
+  padding: 0 16px;
+}
+
+.accountBanner {
+  background: #fffdf2;
+  border: 1px solid rgba(11, 15, 25, 0.12);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.accountBannerLeft {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.accountBannerLabel {
+  color: #7a5b00;
+  font-weight: 800;
+}
+
+.accountBannerValue {
+  color: rgba(11, 15, 25, 0.7);
+}
+
+.accountTitleRow {
+  margin-top: 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.accountTitle {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 950;
+  letter-spacing: -0.4px;
+  color: #0b0f19;
+}
+
+.accountSubtitle {
+  margin: 8px 0 0;
+  color: rgba(11, 15, 25, 0.68);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.accountGrid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.accountCard {
+  background: #ffffff;
+  border: 1px solid rgba(11, 15, 25, 0.12);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 10px 30px rgba(11, 15, 25, 0.06);
+}
+
+.sectionHeader h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.2px;
+  color: #0b0f19;
+}
+
+.sectionHeader p {
+  margin: 6px 0 0;
+  color: rgba(11, 15, 25, 0.65);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.smallHeader {
+  margin-top: 4px;
+}
+
+.accountForm {
+  margin-top: 18px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.formGroup label {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0b0f19;
+}
+
+.accountInput,
+.accountTextarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(11, 15, 25, 0.12);
+  background: #ffffff;
+  outline: none;
+  font-size: 14px;
+  color: #0b0f19;
+  box-shadow: 0 10px 26px rgba(11, 15, 25, 0.05);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.accountInput:focus,
+.accountTextarea:focus {
+  border-color: rgba(11, 15, 25, 0.25);
+  box-shadow: 0 0 0 4px rgba(254, 216, 87, 0.35),
+    0 10px 26px rgba(11, 15, 25, 0.05);
+}
+
+.accountTextarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.sectionDivider {
+  height: 1px;
+  background: rgba(11, 15, 25, 0.08);
+  margin: 10px 0 18px;
+}
+
+.actionRow {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.btn {
+  border: 1px solid rgba(11, 15, 25, 0.14);
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 800;
+  color: #0b0f19;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btnPrimary {
+  background: var(--yellow);
+  border-color: rgba(11, 15, 25, 0.2);
+}
+
+.btnPrimary:hover {
+  background: #ffe27a;
+}
+
+.btnGhost {
+  background: #fff;
+}
+
+.btnDanger {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
+}
+
+.btnDanger:hover {
+  background: #b91c1c;
+}
+
+.successMessage {
+  margin-top: 10px;
+  margin-bottom: 4px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f4fff4;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  color: #166534;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.accountSide {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.overviewList {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.overviewItem {
+  padding: 12px 14px;
+  background: #fffdf2;
+  border: 1px solid rgba(11, 15, 25, 0.1);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.overviewLabel {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(11, 15, 25, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.overviewValue {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0b0f19;
+}
+
+.dangerCard {
+  border: 1px solid rgba(220, 38, 38, 0.18);
+}
+
+.dangerBox {
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--danger-bg);
+  border: 1px solid rgba(220, 38, 38, 0.14);
+}
+
+.dangerBox p {
+  margin: 0 0 14px;
+  color: rgba(11, 15, 25, 0.78);
+  line-height: 1.55;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.deleteConfirmBox {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.deleteWarning {
+  color: #991b1b;
+  font-weight: 800;
+}
+
+.deleteActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 900px) {
+  .accountGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .accountTitleRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .deleteActions {
+    flex-direction: column;
+  }
+}
