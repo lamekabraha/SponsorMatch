@@ -1,5 +1,5 @@
 import OnboardingWizard from './OnboardingWizard';
-import Navbar from "../../Components/Navbar";
+import Header from '@/app/Components/Header';
 import Footer from "../../Components/Footer";
 import { getSession } from '@/auth';
 
@@ -10,10 +10,10 @@ export default async function OnboardingPage() {
 
     return (
         <>
-            <Navbar />
+            <Header />
             <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center py-10 px-4 font-Body">
             <div className="text-center mb-[18px]">
-                <h1 className="text-3xl font-Heading font-bold text-Black mt-10">
+                <h1 className="text-3xl font-Heading font-bold text-Black mt-0">
                     Welcome to SponsorMatch
                 </h1>
                 <p className="text-xs text-Black/65 mt-2 font-Body">

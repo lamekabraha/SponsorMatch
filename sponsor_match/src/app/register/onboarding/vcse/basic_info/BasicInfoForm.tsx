@@ -33,7 +33,6 @@ export default function BasicInfoForm({ onComplete }: BasicInfoFormProps) {
     const [primaryFocusAreas, setPrimaryFocusAreas] = useState<string[]>([]);
     const [focusDropdownOpen, setFocusDropdownOpen] = useState(false);
     const focusDropdownRef = useRef<HTMLDivElement>(null);
-    const [regNumber, setRegNumber] = useState('');
 
     useEffect(() => {
         fetch('/api/auth/register/onboarding/OrgTypes')
@@ -81,7 +80,6 @@ export default function BasicInfoForm({ onComplete }: BasicInfoFormProps) {
                     orgType,
                     orgAddress,
                     primaryFocusAreas,
-                    regNumber,
                 }),
             });
 
@@ -175,18 +173,6 @@ export default function BasicInfoForm({ onComplete }: BasicInfoFormProps) {
                     <input key={v} type="hidden" name="primaryFocusAreas" value={v} />
                 ))}
             </div>
-
-            <label className={labelClass}>
-                Charity Registration Number {requiredSpan}
-            </label>
-            <input
-                name="regNumber"
-                type="text"
-                className={inputClass}
-                value={regNumber}
-                placeholder="charity registration number"
-                onChange={(e) => setRegNumber(e.target.value)}
-            />
 
             <button
                 type="submit"

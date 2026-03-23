@@ -18,7 +18,7 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
-        const { orgAddress, primaryFocusAreas, regNumber } = body;
+        const { orgAddress, primaryFocusAreas} = body;
 
         if (!orgAddress?.trim()) {
             return NextResponse.json(
@@ -29,11 +29,7 @@ export async function POST(req: Request) {
 
         await connection.beginTransaction();
 
-        // 1. Insert into vcse table
-        await connection.execute(
-            `INSERT INTO sponsor_match.vcse (AccountId, RegNumber) VALUES (?, ?)`,
-            [accountId, regNumber?.trim() || null]
-        );
+    
 
         // 2. Insert into location table (organisation address)
         await connection.execute(
