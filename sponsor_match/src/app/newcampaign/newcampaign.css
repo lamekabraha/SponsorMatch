@@ -1,4 +1,5 @@
 :root {
+  /* Crowdfunder-inspired accent */
   --sm-yellow: #fed857;
   --sm-black: #000;
   --sm-white: #fff;
@@ -7,13 +8,13 @@
 
 .nc-page {
   min-height: 100vh;
-  background: var(--background, #ffffff);
+  background: var(--background, #f6f7fb);
   color: var(--foreground, #171717);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 16px;
+  padding: 56px 16px 40px;
   font-family: Arial, Helvetica, sans-serif;
   margin-bottom: 40px;
 }
@@ -25,8 +26,9 @@
 
 .nc-title {
   margin: 0;
-  font-size: 26px;
-  font-weight: 700;
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: -0.2px;
 }
 
 .nc-subtitle {
@@ -36,14 +38,14 @@ margin: 8px 0 0;
 }
 /* made it yellow and added a drop shadow */
 .nc-card {
-  width: 420px;
+  width: 720px;
   max-width: 92vw;
   background: var(--sm-white);
   border: 1px solid var(--sm-border);
-  border-top: 5px solid var(--sm-yellow);
-  border-radius: 10px;
-padding: 22px;
-box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+  border-top: 6px solid var(--sm-yellow);
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
 }
 
 .nc-small-label {
@@ -113,7 +115,7 @@ color: rgba(23, 23, 23, 0.75);
 .nc-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 }
 .nc-label {
 font-size: 12px;
@@ -127,18 +129,18 @@ font-size: 12px;
 }
 
 .nc-input {
-  height: 38px;
+  height: 44px;
   padding: 0 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.45);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
   outline: none;
   transition: 0.2s ease;
 }
 .nc-inputlarge{
-  height: 180px;
+  height: 220px;
   padding: 0 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.45);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
   outline: none;
   transition: 0.2s ease;
 }
@@ -148,11 +150,10 @@ font-size: 12px;
   box-shadow: 0 0 0 3px rgba(254, 216, 87, 0.35);
 }
 
-/*improved button, better w theme*/
 .nc-submit {
 margin-top: 14px;
-height: 42px;
-  border-radius: 8px;
+height: 48px;
+  border-radius: 12px;
   border: 0;
   background: var(--sm-yellow);
   color: var(--sm-black);
@@ -184,9 +185,9 @@ height: 42px;
 }
 .back-btn {
   position: absolute;
-  top: 60px;
+  top: 75px;
   left: 16px;
-  background: rgba(255, 207, 34, 0.995);
+  background: var(--sm-yellow);
   color: #000000;
   padding: 8px 14px;
   border-radius: 999px;
@@ -197,5 +198,5 @@ height: 42px;
 }
 
 .back-btn:hover {
-  background: rgb(255, 224, 111);
+  background: rgba(255, 122, 73, 0.995);
 }

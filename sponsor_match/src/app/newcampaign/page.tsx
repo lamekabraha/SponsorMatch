@@ -13,13 +13,12 @@ export default function NewCampaignPage() {
     return (
             <>
             <Navbar />
-            <Footer />
-            <div className="nc-page">
+            <div className="nc-page py-10">
                 <Link href="/dashboard" className="back-btn">
                      ← Back
                 </Link>
             <div className="nc-header">
-                <h1 className="text-3xl font-Heading text-center mt-10">Create your Campaign</h1>
+                <h1 className="nc-title">Create your Campaign</h1>
                 <p className="nc-subtitle">Create your campain and connect with sponsors!</p>
             </div>
 

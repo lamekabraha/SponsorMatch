@@ -1,14 +1,13 @@
 "use client";
 
-import "./dashboard.css";
 import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import Navbar from "../Components/Navbar";
-import Footer from "../Components/Footer";
-import { DashboardDataCard } from "../Components/DashboardDataCard";
-import { DashboardCampaignCard } from "../Components/DashboardCampaignCard";
-import DashboardSkeleton from "./dashboardSkeletonQuickData";
-import CampaignCardSkeleton from "./dashboardSkeletonCampaignCards";
+import Navbar from "../../Components/Navbar";
+import Footer from "../../Components/Footer";
+import { DashboardDataCard } from "../../Components/DashboardDataCard";
+import { DashboardCampaignCard } from "@/app/Components/DashboardCampaignCard";
+import DashboardSkeleton from "../../Components/dashboardSkeletonQuickData";
+import CampaignCardSkeleton from "../../Components/dashboardSkeletonCampaignCards";
 
 interface DashboardData {
   totalRaised: number;
@@ -49,6 +48,7 @@ function LoadingCampaignCards() {
 }
 
 export default function DashboardPage() {
+
   const [favs, setFavs] = useState<string[]>([]);
 
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
@@ -59,7 +59,6 @@ export default function DashboardPage() {
   const [orderFilter, setOrderFilter] = useState('recent');
   const [isLoading, SetIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
 
   useEffect(() => {
   const fetchDashboardData = async () => {
@@ -87,7 +86,6 @@ export default function DashboardPage() {
   }, [])
   
   console.log(dashboardData)
-
 
   const filteredCampaigns = useMemo(() => {
     const campaigns = dashboardData?.campaigns ?? [];
@@ -142,27 +140,22 @@ export default function DashboardPage() {
   return (
     <>
       <Navbar />
-      <div className="page">
-        <main className="container ">
+      <div className="mt-[52px] min-h-screen">
+        <main className="max-w-[1200px] mx-auto mt-[18px] mb-[60px] px-4">
           
-
-          <section className="titleRow">
-            <h1 className="title">Your Campaigns Dashboard</h1>
+          <section className="mt-[18px] flex items-center justify-between gap-[12px] max-sm:flex-col max-sm:items-stretch">
+            <h1 className="m-0 text-[28px] font-[950] tracking-[-0.4px] text-[#0b0f19]">Welcome Back</h1>
             <div className="flex gap-2">
-              {/* <Link
-                href="/favourites"
-                className="btn btnGhost text-decoration-none font-weight-900"
-              >
-                ★ Favourites ({favCount})
-              </Link> */}
               <Link href="/newcampaign">
-                <button className="btn btnPrimary">＋ Create Campaign</button>
+                <button className="border border-[rgba(11,15,25,0.2)] bg-[#fed857] hover:bg-[#ffe27a] rounded-[12px] py-[10px] px-[12px] cursor-pointer font-extrabold text-[#0b0f19] transition-all duration-[120ms] ease-in-out active:translate-y-[1px]">
+                  ＋ Create Campaign
+                </button>
               </Link>
             </div>
           </section>
 
           {/* Quick Data Cards */}
-          <section className="statsGrid">
+          <section className="mt-[16px] grid grid-cols-4 gap-[12px] max-lg:grid-cols-2">
             {isLoading ? (
               <LoadingQuickData/>
             ) :(
@@ -187,13 +180,18 @@ export default function DashboardPage() {
             )}
           </section>
 
-          <section className="filters">
+          <section className="mt-[16px] flex gap-[10px] items-center max-sm:flex-col max-sm:items-stretch">
             {/* Search and Filter */}
-            <input value={searchQuery}  onChange={(e) => setSearchQuery(e.target.value)} className="search" placeholder="Search campaigns..." />
+            <input 
+              value={searchQuery}  
+              onChange={(e) => setSearchQuery(e.target.value)} 
+              className="flex-1 p-[12px] rounded-[14px] border border-[rgba(11,15,25,0.12)] bg-white outline-none shadow-[0_10px_26px_rgba(11,15,25,0.05)] focus:border-[rgba(11,15,25,0.25)] focus:shadow-[0_0_0_4px_rgba(254,216,87,0.35),_0_10px_26px_rgba(11,15,25,0.05)]" 
+              placeholder="Search campaigns..." 
+            />
             <select
               value={categoryQuery}
               onChange={e => setCategoryQuery(e.target.value)}
-              className="select"
+              className="p-[12px] rounded-[14px] border border-[rgba(11,15,25,0.12)] bg-white min-w-[180px] max-sm:min-w-0 outline-none shadow-[0_10px_26px_rgba(11,15,25,0.05)] focus:border-[rgba(11,15,25,0.25)] focus:shadow-[0_0_0_4px_rgba(254,216,87,0.35),_0_10px_26px_rgba(11,15,25,0.05)]"
             >
               <option value="">All Campaigns</option>
               {(dashboardData?.campaignTypes ?? []).map((campaignType: any) => (
@@ -206,7 +204,7 @@ export default function DashboardPage() {
               ))}
             </select>
             <button
-              className="btn btnGhost"
+              className="border border-[rgba(11,15,25,0.14)] bg-white rounded-[12px] py-[10px] px-[12px] cursor-pointer font-extrabold text-[#0b0f19] transition-all duration-[120ms] ease-in-out active:translate-y-[1px]"
               type="button"
               onClick={() => setMoreFilter((prev) => !prev)}
               aria-expanded={moreFilter}
@@ -215,26 +213,26 @@ export default function DashboardPage() {
               {moreFilter ? "Hide Filters" : "More Filters"}
             </button>
           </section>
+          
           {/* More Filters */}
           {moreFilter && (
           <section id="more-filters-panel" className="flex justify-end w-full">
-            <div className="flex justify-end gap-4 w-fit rounded-2xl mt-2 p-4 " style={{ backgroundColor: 'rgba(254, 216, 87, 0.4)' }}>
+            <div className="flex justify-end gap-4 w-fit rounded-2xl mt-2 p-4 bg-[rgba(254,216,87,0.4)]">
                 <div>
                   <label htmlFor="status" className="px-2">Status:</label>
-                  <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} name="status" id="status" className="rounded-2xl bg-Grey-light py-1 px-3 capitalize">
+                  <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} name="status" id="status" className="rounded-2xl bg-gray-200 py-1 px-3 capitalize outline-none">
                     <option value="all" >All</option>
                     {[...new Set((dashboardData?.campaigns ?? []).map((campaign: any) => campaign.Status))]
                       .filter(status => status && status !== "")
-                      .map((status: string) => (
+                      .map((status: any) => (
                         <option key={status} value={status} className="capitalize">{status}</option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                    {/* order by: goal min/max; raised min/max; recent/oldest; */}
                     <label htmlFor="order" className="px-2">Order By: </label>
-                    <select value={orderFilter} onChange={(e) => setOrderFilter(e.target.value)} name="order" id="order" className="rounded-2xl bg-Grey-light py-1 px-3 capitalize">
+                    <select value={orderFilter} onChange={(e) => setOrderFilter(e.target.value)} name="order" id="order" className="rounded-2xl bg-gray-200 py-1 px-3 capitalize outline-none">
                       <option value="recent">Recent</option>
                       <option value="popular">Popularity</option>
                       <option value="goalMax">Max Goal</option>
@@ -249,12 +247,12 @@ export default function DashboardPage() {
           )}
 
         {/* Campaign Cards */}
-        <section className="grid">
+        <section className="mt-[16px] grid grid-cols-3 gap-[14px] items-start max-lg:grid-cols-2 max-sm:grid-cols-1">
           {isLoading ? (
             <LoadingCampaignCards />
           ) : VisibleCampaigns.length > 0 ? (
             VisibleCampaigns.map((campaign: any) => (
-              <article key={campaign.CampaignId} className="card">
+              <article key={campaign.CampaignId} className="flex flex-col">
                 <DashboardCampaignCard
                   title={campaign.CampaignName}
                   category={campaign.Type}
@@ -264,13 +262,13 @@ export default function DashboardPage() {
                   coverImageUrl={
                     campaign.CoverImage
                       ? `/api/files/${campaign.CoverImage}`
-                      : null
+                      : `/loadingImage.jpg`
                   }
                 />
               </article>
             ))
           ) : (
-            <div>No Campaigns match your search</div>
+            <div className="col-span-full py-8 text-center text-gray-500 font-medium">No Campaigns match your search</div>
           )}
         </section>
         </main>
