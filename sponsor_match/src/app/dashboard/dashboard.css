@@ -221,6 +221,20 @@ body {
   display: block;
 }
 
+.cardCover {
+  margin: -14px -14px 0 -14px;
+  height: 170px;
+  background: #eee;
+  overflow: hidden;
+}
+
+.cardCoverImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .goalPill {
   position: absolute;
   right: 12px;

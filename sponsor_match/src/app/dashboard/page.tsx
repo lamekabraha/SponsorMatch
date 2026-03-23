@@ -2,55 +2,22 @@
 
 import "./dashboard.css";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
+import { DashboardDataCard } from "../Components/DashboardDataCard";
+import { DashboardCampaignCard } from "../Components/DashboardCampaignCard";
+import DashboardSkeleton from "./dashboardSkeletonQuickData";
+import CampaignCardSkeleton from "./dashboardSkeletonCampaignCards";
 
-type Campaign = {
-  id: string;
-  title: string;
-  org: string;
-  category: string;
-  deadline: string;
-  raised: number;
-  goal: number;
-  imageUrl: string;
-};
-
-const campaigns: Campaign[] = [
-  {
-    id: "1",
-    title: "Basketball Community",
-    org: "Sports For All",
-    category: "Sports",
-    deadline: "11/03/2026",
-    raised: 2000,
-    goal: 5000,
-    imageUrl: "/campaigns/basketball.jpg",
-  },
-  {
-    id: "2",
-    title: "Coding Team",
-    org: "Tech Made Easy",
-    category: "Education",
-    deadline: "11/14/2023",
-    raised: 4500,
-    goal: 10000,
-    imageUrl: "/campaigns/coding.jpg",
-  },
-  {
-    id: "3",
-    title: "Homeless Support Initiative",
-    org: "Shelter Plus",
-    category: "Poverty Relief",
-    deadline: "11/03/2026",
-    raised: 2000,
-    goal: 5000,
-    imageUrl: "/campaigns/homeless.jpg",
-  },
-];
-
-const FAV_KEY = "sponsorMatch:favourites";
+interface DashboardData {
+  totalRaised: number;
+  activeCampaign: number;
+  connections: number | null;
+  averageEngagement: number;
+  campaignTypes: any[];
+  campaigns: any[];
+}
 
 function formatGBP(n: number) {
   return new Intl.NumberFormat("en-GB", {
@@ -60,192 +27,254 @@ function formatGBP(n: number) {
   }).format(n);
 }
 
-function pct(raised: number, goal: number) {
-  if (goal <= 0) return 0;
-  return Math.min(100, Math.round((raised / goal) * 100));
-}
-
-function readFavs(): string[] {
-  try {
-    const raw = localStorage.getItem(FAV_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeFavs(ids: string[]) {
-  localStorage.setItem(FAV_KEY, JSON.stringify(ids));
-}
-
-function StarIcon({ filled }: { filled: boolean }) {
+function LoadingQuickData() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      width="18"
-      height="18"
-      aria-hidden="true"
-      style={{ display: "block" }}
-    >
-      <path
-        d="M12 17.3l-6.18 3.7 1.64-7.03L2 9.24l7.19-.62L12 2l2.81 6.62 7.19.62-5.46 4.73 1.64 7.03z"
-        fill={filled ? "#fed857" : "none"}
-        stroke={filled ? "#0b0f19" : "#0b0f19"}
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <>
+      <DashboardSkeleton />
+      <DashboardSkeleton />
+      <DashboardSkeleton />
+      <DashboardSkeleton />
+    </>
   );
+}
+
+function LoadingCampaignCards() {
+  return (
+    <>
+      <CampaignCardSkeleton/>
+      <CampaignCardSkeleton/>
+      <CampaignCardSkeleton/>
+    </>
+  )
 }
 
 export default function DashboardPage() {
   const [favs, setFavs] = useState<string[]>([]);
 
-  useEffect(() => {
-    setFavs(readFavs());
-  }, []);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryQuery, setCategoryQuery]= useState('');
+  const [moreFilter, setMoreFilter] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [orderFilter, setOrderFilter] = useState('recent');
+  const [isLoading, SetIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
 
   useEffect(() => {
-    writeFavs(favs);
-  }, [favs]);
+  const fetchDashboardData = async () => {
+    try{
+      const response = await fetch('/api/dashboard');
 
-  const favCount = useMemo(() => favs.length, [favs]);
+      if (!response.ok) {
+        throw new Error('Failed to load dashboard data');
+      }
 
-  function toggleFav(id: string) {
-    setFavs((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  }
+      const result = await response.json();
+
+      if (result.success) {
+        setDashboardData(result.data);
+      }else{
+        throw new Error(result.error || 'Unknown error occurred');
+      }
+    }catch (error: any){
+      setError(error.message)
+    }finally{
+      SetIsLoading(false);
+    }
+  };
+  fetchDashboardData();
+  }, [])
+  
+  console.log(dashboardData)
+
+
+  const filteredCampaigns = useMemo(() => {
+    const campaigns = dashboardData?.campaigns ?? [];
+    const normalizeSearch = searchQuery.toLowerCase().trim();
+
+    return campaigns.filter((campaign: any) => {
+      const matchCategory =
+        !categoryQuery || campaign.Type === categoryQuery;
+      const matchSearch =
+        !normalizeSearch ||
+        campaign.CampaignName?.toLowerCase().includes(normalizeSearch) ||
+        campaign.Type?.toLowerCase().includes(normalizeSearch);
+      return matchCategory && matchSearch;
+    });
+  }, [dashboardData?.campaigns, searchQuery, categoryQuery]);
+
+  const VisibleCampaigns = useMemo(() => {
+    const base = filteredCampaigns;
+
+    const statusFiltered = 
+      statusFilter === 'all'
+      ? base
+      : base.filter((campaign: any) => campaign.Status === statusFilter)
+    const sorted = [...statusFiltered].sort((a: any, b: any) => {
+      const goalA = Number(a.GoalAmount ?? 0);
+      const goalB = Number(b.GoalAmount ?? 0);
+      const raisedA = Number(a.Raised ?? 0);
+      const raisedB = Number(b.Raised ?? 0);
+      const createdA = new Date(a.CreatedAt ?? 0).getTime();
+      const createdB = new Date(b.CreatedAt ?? 0).getTime();
+
+      switch (orderFilter) {
+        case "goalMax":
+          return goalB - goalA;
+        case "goalMin":
+          return goalA - goalB;
+        case "raisedMax":
+          return raisedB - raisedA;
+        case "raisedMin":
+          return raisedA - raisedB;
+        case "popular":
+          return raisedB - raisedA;
+        case "recent":
+        default:
+          return createdB - createdA;
+      }
+    });
+
+    return sorted;
+  }, [filteredCampaigns, statusFilter, orderFilter])
 
   return (
-    <><Navbar />
-    <div className="page">
-      
-      <Footer />
-      <main className="container">
-        <section className="banner">
-          <div className="bannerLeft">
-            <span className="bannerValue">Currently viewing as</span>
-            <strong className="bannerStrong">VCSE</strong>
-          </div>
+    <>
+      <Navbar />
+      <div className="page">
+        <main className="container ">
+          
 
-          <Link
-            href="/favourites"
-            className="btn btnGhost"
-            style={{ textDecoration: "none", fontWeight: 900 }}
-          >
-            ★ Favourites ({favCount})
-          </Link>
-        </section>
+          <section className="titleRow">
+            <h1 className="title">Your Campaigns Dashboard</h1>
+            <div className="flex gap-2">
+              {/* <Link
+                href="/favourites"
+                className="btn btnGhost text-decoration-none font-weight-900"
+              >
+                ★ Favourites ({favCount})
+              </Link> */}
+              <Link href="/newcampaign">
+                <button className="btn btnPrimary">＋ Create Campaign</button>
+              </Link>
+            </div>
+          </section>
 
-        <section className="titleRow">
-          <h1 className="title">Your Campaigns Dashboard</h1>
-          <Link href="/newcampaign">
-            <button className="btn btnPrimary">＋ Create Campaign</button>
-          </Link>
-        </section>
+          {/* Quick Data Cards */}
+          <section className="statsGrid">
+            {isLoading ? (
+              <LoadingQuickData/>
+            ) :(
+              <>
+                <DashboardDataCard
+                  title="Total Raised"
+                  data={formatGBP(dashboardData?.totalRaised ?? 0)}
+                />
+                <DashboardDataCard
+                  title="Active Campaigns"
+                  data={(dashboardData?.activeCampaign ?? 0).toString()}
+                />
+                <DashboardDataCard
+                  title="Connections"
+                  data={(dashboardData?.connections ?? 0).toString()}
+                />
+                <DashboardDataCard
+                  title="Avg. Engagement"
+                  data={`${Math.round(dashboardData?.averageEngagement ?? 0)}%`}
+                />
+              </>
+            )}
+          </section>
 
-        <section className="statsGrid">
-          <div className="statCard">
-            <div className="statLabel">Total Raised</div>
-            <div className="statValue">{formatGBP(8500)}</div>
-          </div>
-          <div className="statCard">
-            <div className="statLabel">Active Campaigns</div>
-            <div className="statValue">3</div>
-          </div>
-          <div className="statCard">
-            <div className="statLabel">Connections</div>
-            <div className="statValue">12</div>
-          </div>
-          <div className="statCard">
-            <div className="statLabel">Avg. Engagement</div>
-            <div className="statValue">87%</div>
-          </div>
-        </section>
+          <section className="filters">
+            {/* Search and Filter */}
+            <input value={searchQuery}  onChange={(e) => setSearchQuery(e.target.value)} className="search" placeholder="Search campaigns..." />
+            <select
+              value={categoryQuery}
+              onChange={e => setCategoryQuery(e.target.value)}
+              className="select"
+            >
+              <option value="">All Campaigns</option>
+              {(dashboardData?.campaignTypes ?? []).map((campaignType: any) => (
+                <option
+                  key={campaignType.CampaignTypeId}
+                  value={campaignType.Type}
+                >
+                  {campaignType.Type}
+                </option>
+              ))}
+            </select>
+            <button
+              className="btn btnGhost"
+              type="button"
+              onClick={() => setMoreFilter((prev) => !prev)}
+              aria-expanded={moreFilter}
+              aria-controls="more-filters-panel"
+            >
+              {moreFilter ? "Hide Filters" : "More Filters"}
+            </button>
+          </section>
+          {/* More Filters */}
+          {moreFilter && (
+          <section id="more-filters-panel" className="flex justify-end w-full">
+            <div className="flex justify-end gap-4 w-fit rounded-2xl mt-2 p-4 " style={{ backgroundColor: 'rgba(254, 216, 87, 0.4)' }}>
+                <div>
+                  <label htmlFor="status" className="px-2">Status:</label>
+                  <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} name="status" id="status" className="rounded-2xl bg-Grey-light py-1 px-3 capitalize">
+                    <option value="all" >All</option>
+                    {[...new Set((dashboardData?.campaigns ?? []).map((campaign: any) => campaign.Status))]
+                      .filter(status => status && status !== "")
+                      .map((status: string) => (
+                        <option key={status} value={status} className="capitalize">{status}</option>
+                    ))}
+                  </select>
+                </div>
 
-        <section className="filters">
-          <input className="search" placeholder="Search campaigns..." />
-          <select className="select" defaultValue="all">
-            <option value="all">All Categories</option>
-            <option value="sports">Sports</option>
-            <option value="education">Education</option>
-            <option value="poverty">Poverty Relief</option>
-          </select>
-          <button className="btn btnGhost">More Filters</button>
-        </section>
+                <div>
+                    {/* order by: goal min/max; raised min/max; recent/oldest; */}
+                    <label htmlFor="order" className="px-2">Order By: </label>
+                    <select value={orderFilter} onChange={(e) => setOrderFilter(e.target.value)} name="order" id="order" className="rounded-2xl bg-Grey-light py-1 px-3 capitalize">
+                      <option value="recent">Recent</option>
+                      <option value="popular">Popularity</option>
+                      <option value="goalMax">Max Goal</option>
+                      <option value="goalMin">Min Goal</option>
+                      <option value="raisedMax">Max Raised</option>
+                      <option value="raisedMin">Min Raised</option>
+                    </select>
+                </div>
 
+            </div>
+          </section>
+          )}
+
+        {/* Campaign Cards */}
         <section className="grid">
-          {campaigns.map((c) => {
-            const progress = pct(c.raised, c.goal);
-            const needed = Math.max(0, c.goal - c.raised);
-            const isFav = favs.includes(c.id);
-
-            return (
-              <article key={c.id} className="card">
-                <div className="cardImage">
-                  <img src={c.imageUrl} alt={c.title} />
-
-                  <button
-                    type="button"
-                    onClick={() => toggleFav(c.id)}
-                    aria-label={isFav ? "Remove from favourites" : "Add to favourites"}
-                    title={isFav ? "Unfavourite" : "Favourite"}
-                    style={{
-                      position: "absolute",
-                      top: 12,
-                      left: 12,
-                      width: 38,
-                      height: 38,
-                      borderRadius: 12,
-                      border: "1px solid rgba(11,15,25,0.16)",
-                      background: "rgba(255,255,255,0.9)",
-                      backdropFilter: "blur(6px)",
-                      display: "grid",
-                      placeItems: "center",
-                      cursor: "pointer",
-                      boxShadow: "0 10px 22px rgba(11,15,25,0.12)",
-                    }}
-                  >
-                    <StarIcon filled={isFav} />
-                  </button>
-
-                  <span className="goalPill">Goal: {formatGBP(c.goal)}</span>
-                </div>
-
-                <div className="cardBody">
-                  <div className="cardMeta">
-                    <span className="pill">{c.category}</span>
-                    <span className="deadline">Deadline: {c.deadline}</span>
-                  </div>
-
-                  <h3 className="cardTitle">{c.title}</h3>
-                  <div className="cardOrg">{c.org}</div>
-
-                  <div className="budgetInfo">
-                    <span>Raised: {formatGBP(c.raised)}</span>
-                    <span>Goal: {formatGBP(c.goal)}</span>
-                    <span className="needed">Still Needed: {formatGBP(needed)}</span>
-                  </div>
-
-                  <div className="cardActions">
-                    {c.id === "1" ? (
-                      <Link href="/campaign" className="btn btnDark">
-                        Read More
-                      </Link>
-                    ) : (
-                      <button type="button" className="btn btnDark">
-                        Read More
-                      </button>
-                    )}
-                  </div>
-                </div>
+          {isLoading ? (
+            <LoadingCampaignCards />
+          ) : VisibleCampaigns.length > 0 ? (
+            VisibleCampaigns.map((campaign: any) => (
+              <article key={campaign.CampaignId} className="card">
+                <DashboardCampaignCard
+                  title={campaign.CampaignName}
+                  category={campaign.Type}
+                  raised={campaign.Raised}
+                  goal={Number(campaign.GoalAmount ?? 0)}
+                  status={campaign.Status}
+                  coverImageUrl={
+                    campaign.CoverImage
+                      ? `/api/files/${campaign.CoverImage}`
+                      : null
+                  }
+                />
               </article>
-            );
-          })}
+            ))
+          ) : (
+            <div>No Campaigns match your search</div>
+          )}
         </section>
-      </main>
-    </div>
+        </main>
+      </div>
     </>
   );
 }

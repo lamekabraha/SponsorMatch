@@ -1,4 +1,4 @@
-import pool from '@/../lib/db';
+import {pool} from '@/lib/db';
 import { NextResponse } from 'next/server';
 
 function mapRow(row: Record<string, unknown>): { id: number; name: string; email: string } {
