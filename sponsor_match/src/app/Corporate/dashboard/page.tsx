@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { DashboardDataCard } from '@/app/Components/DashboardDataCard';
 import { faFilter } from '@fortawesome/free-solid-svg-icons';
 import { DashboardCampaignCard } from '@/app/Components/DashboardCampaignCard';
+import Footer from '@/app/Components/Footer';
 
 export default function CorporateDashboard() {
     return (
@@ -78,6 +79,7 @@ export default function CorporateDashboard() {
                 />
                 </section>
             </main>
+            <Footer/>
         </>
     );
 }
