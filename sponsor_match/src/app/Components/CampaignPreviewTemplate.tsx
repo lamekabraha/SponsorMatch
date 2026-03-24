@@ -1,4 +1,7 @@
-import '@/app/campaign/campaign.css';
+"use client";
+
+import { useEffect, useState } from "react";
+import "@/app/campaign/campaign.css";
 
 interface CampaignPreviewProps{
     prevData: {
@@ -17,6 +20,32 @@ interface CampaignPreviewProps{
 export default function CampaignPreviewTemplate({prevData, isLivePreview}: CampaignPreviewProps){
     const progressPercentage = Math.min(100, Math.round((prevData.raised/(prevData.goal || 1)) * 100));
 
+    const [accountData, setAccountData] = useState<any | null>(null);
+
+    useEffect(() => {
+        const fetchAccountData = async (): Promise<void> => {
+            try {
+                const response = await fetch('/api/getAccountData');
+                const { success, data }: { success: boolean; data: any[] } = await response.json();
+                if (!success) {
+                    setAccountData(null);
+                    return;
+                }
+                setAccountData(data?.[0] ?? null);
+            } catch {
+                setAccountData(null);
+            }
+        };
+        fetchAccountData();
+    }, []);
+
+    const companyLogoSrc = accountData?.CompanyLogo
+        ? accountData.CompanyLogo.startsWith("http") || accountData.CompanyLogo.startsWith("/")
+            ? accountData.CompanyLogo
+            : `/api/files/${String(accountData.CompanyLogo).replace(/^\/+/, "")}`
+        : "/placeholder-logo.png";
+
+    console.log(accountData?.AccountId);
     return (
         <div className='campaign-page'>
             {isLivePreview && (
@@ -26,15 +55,23 @@ export default function CampaignPreviewTemplate({prevData, isLivePreview}: Campa
                 <div className="hero-card">
                     <div style={{backgroundImage: `url(${prevData.coverImageUrl || 'https://images.unsplash.com/photo-1546519638-68e109498ffc'})`}} className="hero-image">
                         {!isLivePreview && <button className='back-button'>Back</button>}
-                        <div className="hero-content">
-                            <h1 className="text-white">{prevData.name || 'Campaign Title'}</h1>
-                            <p className="org">by {prevData.orgName || 'Organisation'}</p>
-                            <div className="hero-meta">
-                                <span className="chip">{prevData.type || 'Category'}</span>
-                                <span>Location, {prevData.location || 'Uk'}</span>
-                            </div>
-                        </div>
                     </div>
+                        <div className="hero-content">
+                            <h1 className="text-Black">{prevData.name || 'Campaign Title'}</h1>
+                            <div className="flex gap-2">
+                                <img 
+                                    src={companyLogoSrc}
+                                    alt="Logo" 
+                                    width={50} 
+                                    height={50} 
+                                    style={{ borderRadius: '50%' }}
+                                />
+                                <div className="hero-meta flex flex-col gap-0 justify- items-start">
+                                    <span className="org my-0 py-0">by {accountData?.AccountName || accountData?.Name || "Organisation"}</span>
+                                    <span className="chip bg-yellow-500 text-Black my-0 py-0 ">{prevData.type || 'Category'} | Location, {prevData.location || 'Uk'}</span>
+                                </div>
+                            </div> 
+                        </div>
 
                     <div className="content-grid">
                         <div className="left-column">

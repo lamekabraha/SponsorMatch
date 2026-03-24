@@ -20,6 +20,10 @@ type CampaignForm = {
 
 export default function NewCampaignPage() {
   const [viewMode, setViewMode] = useState<"edit" | "preview">("edit");
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [coverUploadName, setCoverUploadName] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<CampaignForm>({
     name: "",
@@ -37,6 +41,13 @@ export default function NewCampaignPage() {
 
   const [submitState, setSubmitState] = useState<"idle" | "saving" | "saved">("idle");
   const [error, setError] = useState<string | null>(null);
+
+  const wizardSteps = [
+    { id: 1, title: "Basics" },
+    { id: 2, title: "Funding & Timeline" },
+    { id: 3, title: "Story & Media" },
+    { id: 4, title: "Review & Publish" },
+  ];
 
   const categories = [
     "Sports",
@@ -62,8 +73,75 @@ export default function NewCampaignPage() {
     );
   }, [formData]);
 
+  const canProceed = useMemo(() => {
+    switch (currentStep) {
+      case 1:
+        return (
+          formData.name.trim().length > 2 &&
+          formData.orgName.trim().length > 1 &&
+          formData.type.trim().length > 0
+        );
+      case 2:
+        return (
+          formData.goal > 0 &&
+          formData.startDate.trim().length > 0 &&
+          formData.endDate.trim().length > 0 &&
+          formData.startDate <= formData.endDate
+        );
+      case 3:
+        return (
+          formData.location.trim().length > 1 &&
+          formData.desc.trim().length > 20
+        );
+      case 4:
+      default:
+        return canSubmit;
+    }
+  }, [currentStep, formData, canSubmit]);
+
   function updateField<K extends keyof CampaignForm>(key: K, value: CampaignForm[K]) {
     setFormData((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function uploadCover(file: File) {
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    const maxSizeMb = 5;
+
+    if (!allowedTypes.includes(file.type)) {
+      setError("Cover image must be JPG, PNG, or WEBP.");
+      return;
+    }
+
+    if (file.size > maxSizeMb * 1024 * 1024) {
+      setError(`Cover image must be smaller than ${maxSizeMb}MB.`);
+      return;
+    }
+
+    try {
+      setError(null);
+      setIsUploadingCover(true);
+
+      const fd = new FormData();
+      fd.append("cover", file);
+
+      const response = await fetch("/api/newCampaign/cover", {
+        method: "POST",
+        body: fd,
+      });
+
+      const payload = await response.json();
+      if (!response.ok || !payload?.success) {
+        throw new Error(payload?.error || "Failed to upload cover image");
+      }
+
+      // Store API-accessible URL in form state so preview works immediately.
+      updateField("coverImageUrl", `/api/files/${payload.coverPath}`);
+      setCoverUploadName(file.name);
+    } catch (err: any) {
+      setError(err?.message || "Unable to upload image. Please try again.");
+    } finally {
+      setIsUploadingCover(false);
+    }
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -106,12 +184,26 @@ export default function NewCampaignPage() {
     }
   }
 
+  function goNextStep() {
+    if (!canProceed) {
+      setError("Please complete the required fields before continuing.");
+      return;
+    }
+    setError(null);
+    setCurrentStep((prev) => Math.min(prev + 1, wizardSteps.length));
+  }
+
+  function goPrevStep() {
+    setError(null);
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+  }
+
   return (
     <div className="nc-create-page">
       <Navbar />
 
       <nav className="nc-create-toolbar">
-        <h2 className="nc-create-toolbar-title">VCSE Campaign Creator</h2>
+        <h2 className="nc-create-toolbar-title">Your Campaign Creator</h2>
         <div className="nc-toolbar-actions">
           {viewMode === "preview" ? (
             <button
@@ -138,163 +230,240 @@ export default function NewCampaignPage() {
             <p className="nc-create-hero-subtitle">
               Add the essential campaign details for your VCSE audience and sponsors.
             </p>
+            <div className="nc-stepper-meta">
+              Step {currentStep} of {wizardSteps.length}
+            </div>
+            <div className="nc-stepper">
+              {wizardSteps.map((step) => (
+                <div
+                  key={step.id}
+                  className={`nc-step-chip ${
+                    step.id === currentStep
+                      ? "is-active"
+                      : step.id < currentStep
+                      ? "is-complete"
+                      : ""
+                  }`}
+                >
+                  <span className="nc-step-chip-index">{step.id}</span>
+                  <span className="nc-step-chip-title">{step.title}</span>
+                </div>
+              ))}
+            </div>
           </section>
 
           <form onSubmit={handleSubmit} className="nc-create-form">
-            <section className="nc-panel">
-              <h2 className="nc-section-title">Basics</h2>
-              <div className="nc-grid-2">
-                <div className="nc-col-span-2">
-                  <label className="nc-label">
-                    Campaign Name *
-                  </label>
-                  <input
-                    className="nc-input"
-                    placeholder="e.g. Youth Coaching Programme"
-                    value={formData.name}
-                    onChange={(e) => updateField("name", e.target.value)}
-                  />
-                </div>
+            {currentStep === 1 && (
+              <section className="nc-panel">
+                <h2 className="nc-section-title">Basics</h2>
+                <div className="nc-grid-2">
+                  <div className="nc-col-span-2">
+                    <label className="nc-label">
+                      Campaign Name *
+                    </label>
+                    <input
+                      className="nc-input"
+                      placeholder="e.g. Youth Coaching Programme"
+                      value={formData.name}
+                      onChange={(e) => updateField("name", e.target.value)}
+                    />
+                  </div>
 
-                <div>
-                  <label className="nc-label">
-                    Organisation Name *
-                  </label>
-                  <input
-                    className="nc-input"
-                    placeholder="Your VCSE name"
-                    value={formData.orgName}
-                    onChange={(e) => updateField("orgName", e.target.value)}
-                  />
-                </div>
+                  <div>
+                    <label className="nc-label">
+                      Organisation Name *
+                    </label>
+                    <input
+                      className="nc-input"
+                      placeholder="Your VCSE name"
+                      value={formData.orgName}
+                      onChange={(e) => updateField("orgName", e.target.value)}
+                    />
+                  </div>
 
-                <div>
-                  <label className="nc-label">
-                    Campaign Category *
-                  </label>
-                  <select
-                    className="nc-input"
-                    value={formData.type}
-                    onChange={(e) => updateField("type", e.target.value)}
+                  <div>
+                    <label className="nc-label">
+                      Campaign Category *
+                    </label>
+                    <select
+                      className="nc-input"
+                      value={formData.type}
+                      onChange={(e) => updateField("type", e.target.value)}
+                    >
+                      {categories.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {currentStep === 2 && (
+              <section className="nc-panel">
+                <h2 className="nc-section-title">Funding & Timeline</h2>
+                <div className="nc-grid-2">
+                  <div>
+                    <label className="nc-label">
+                      Funding Goal (GBP) *
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      className="nc-input"
+                      value={formData.goal}
+                      onChange={(e) => updateField("goal", Number(e.target.value || 0))}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="nc-label">
+                      Already Raised (GBP)
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      className="nc-input"
+                      value={formData.raised}
+                      onChange={(e) => updateField("raised", Number(e.target.value || 0))}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="nc-label">
+                      Start Date *
+                    </label>
+                    <input
+                      type="date"
+                      className="nc-input"
+                      value={formData.startDate}
+                      onChange={(e) => updateField("startDate", e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="nc-label">
+                      End Date *
+                    </label>
+                    <input
+                      type="date"
+                      className="nc-input"
+                      value={formData.endDate}
+                      onChange={(e) => updateField("endDate", e.target.value)}
+                    />
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {currentStep === 3 && (
+              <section className="nc-panel">
+                <h2 className="nc-section-title">Story & Media</h2>
+                <div className="nc-form-stack">
+                  <div>
+                    <label className="nc-label">
+                      Location *
+                    </label>
+                    <input
+                      className="nc-input"
+                      placeholder="e.g. Sheffield, UK"
+                      value={formData.location}
+                      onChange={(e) => updateField("location", e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="nc-label">
+                      Short Summary
+                    </label>
+                    <input
+                      className="nc-input"
+                      placeholder="One-line value proposition"
+                      value={formData.summary}
+                      onChange={(e) => updateField("summary", e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="nc-label">
+                      Campaign Description *
+                    </label>
+                    <textarea
+                      rows={6}
+                      className="nc-textarea"
+                      placeholder="Describe the need, beneficiaries, and impact."
+                      value={formData.desc}
+                      onChange={(e) => updateField("desc", e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="nc-label">
+                    Cover Image
+                    </label>
+                  <div
+                    className={`nc-dropzone ${isDragOver ? "is-drag-over" : ""} ${
+                      isUploadingCover ? "is-uploading" : ""
+                    }`}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setIsDragOver(true);
+                    }}
+                    onDragLeave={() => setIsDragOver(false)}
+                    onDrop={async (e) => {
+                      e.preventDefault();
+                      setIsDragOver(false);
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) await uploadCover(file);
+                    }}
                   >
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
+                    <input
+                      id="cover-upload"
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      className="nc-file-input"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) await uploadCover(file);
+                      }}
+                    />
+                    <label htmlFor="cover-upload" className="nc-dropzone-label">
+                      {isUploadingCover
+                        ? "Uploading cover image..."
+                        : "Drag and drop cover image here, or click to upload"}
+                    </label>
+                    <p className="nc-dropzone-meta">Accepted: JPG, PNG, WEBP (max 5MB)</p>
+                    {coverUploadName && (
+                      <p className="nc-dropzone-success">Uploaded: {coverUploadName}</p>
+                    )}
+                  </div>
+                  </div>
                 </div>
-              </div>
-            </section>
+              </section>
+            )}
 
-            <section className="nc-panel">
-              <h2 className="nc-section-title">Funding & Timeline</h2>
-              <div className="nc-grid-2">
-                <div>
-                  <label className="nc-label">
-                    Funding Goal (GBP) *
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    className="nc-input"
-                    value={formData.goal}
-                    onChange={(e) => updateField("goal", Number(e.target.value || 0))}
-                  />
+            {currentStep === 4 && (
+              <section className="nc-panel">
+                <h2 className="nc-section-title">Review & Publish</h2>
+                <div className="nc-review-list">
+                  <p><strong>Name:</strong> {formData.name || "-"}</p>
+                  <p><strong>Organisation:</strong> {formData.orgName || "-"}</p>
+                  <p><strong>Category:</strong> {formData.type || "-"}</p>
+                  <p><strong>Goal:</strong> {formatMoney(formData.goal)}</p>
+                  <p><strong>Location:</strong> {formData.location || "-"}</p>
+                  <p><strong>Dates:</strong> {formData.startDate || "-"} to {formData.endDate || "-"}</p>
                 </div>
-
-                <div>
-                  <label className="nc-label">
-                    Already Raised (GBP)
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    className="nc-input"
-                    value={formData.raised}
-                    onChange={(e) => updateField("raised", Number(e.target.value || 0))}
-                  />
-                </div>
-
-                <div>
-                  <label className="nc-label">
-                    Start Date *
-                  </label>
-                  <input
-                    type="date"
-                    className="nc-input"
-                    value={formData.startDate}
-                    onChange={(e) => updateField("startDate", e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <label className="nc-label">
-                    End Date *
-                  </label>
-                  <input
-                    type="date"
-                    className="nc-input"
-                    value={formData.endDate}
-                    onChange={(e) => updateField("endDate", e.target.value)}
-                  />
-                </div>
-              </div>
-            </section>
-
-            <section className="nc-panel">
-              <h2 className="nc-section-title">Story & Media</h2>
-              <div className="nc-form-stack">
-                <div>
-                  <label className="nc-label">
-                    Location *
-                  </label>
-                  <input
-                    className="nc-input"
-                    placeholder="e.g. Sheffield, UK"
-                    value={formData.location}
-                    onChange={(e) => updateField("location", e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <label className="nc-label">
-                    Short Summary
-                  </label>
-                  <input
-                    className="nc-input"
-                    placeholder="One-line value proposition"
-                    value={formData.summary}
-                    onChange={(e) => updateField("summary", e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <label className="nc-label">
-                    Campaign Description *
-                  </label>
-                  <textarea
-                    rows={6}
-                    className="nc-textarea"
-                    placeholder="Describe the need, beneficiaries, and impact."
-                    value={formData.desc}
-                    onChange={(e) => updateField("desc", e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <label className="nc-label">
-                    Cover Image URL
-                  </label>
-                  <input
-                    className="nc-input"
-                    placeholder="https://..."
-                    value={formData.coverImageUrl}
-                    onChange={(e) => updateField("coverImageUrl", e.target.value)}
-                  />
-                </div>
-              </div>
-            </section>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("preview")}
+                  className="nc-btn nc-btn-ghost"
+                >
+                  Open Full Preview
+                </button>
+              </section>
+            )}
 
             {error && (
               <div className="nc-error">
@@ -305,22 +474,34 @@ export default function NewCampaignPage() {
             <div className="nc-actions">
               <button
                 type="button"
-                onClick={() => setViewMode("preview")}
-                className="nc-btn nc-btn-ghost"
+                onClick={goPrevStep}
+                disabled={currentStep === 1}
+                className={`nc-btn nc-btn-ghost ${currentStep === 1 ? "is-disabled" : ""}`}
               >
-                Preview Campaign
+                Back
               </button>
-              <button
-                type="submit"
-                disabled={!canSubmit || submitState === "saving"}
-                className={`nc-btn nc-btn-primary ${!canSubmit || submitState === "saving" ? "is-disabled" : ""}`}
-              >
-                {submitState === "saving"
-                  ? "Saving..."
-                  : submitState === "saved"
-                  ? "Saved"
-                  : "Create Campaign"}
-              </button>
+
+              {currentStep < wizardSteps.length ? (
+                <button
+                  type="button"
+                  onClick={goNextStep}
+                  className={`nc-btn nc-btn-primary ${!canProceed ? "is-disabled" : ""}`}
+                >
+                  Next
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={!canSubmit || submitState === "saving"}
+                  className={`nc-btn nc-btn-primary ${!canSubmit || submitState === "saving" ? "is-disabled" : ""}`}
+                >
+                  {submitState === "saving"
+                    ? "Saving..."
+                    : submitState === "saved"
+                    ? "Saved"
+                    : "Create Campaign"}
+                </button>
+              )}
             </div>
           </form>
         </main>
@@ -331,4 +512,12 @@ export default function NewCampaignPage() {
       )}
     </div>
   );
+}
+
+function formatMoney(value: number) {
+  return new Intl.NumberFormat("en-GB", {
+    style: "currency",
+    currency: "GBP",
+    maximumFractionDigits: 0,
+  }).format(value || 0);
 }

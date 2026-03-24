@@ -74,6 +74,59 @@
   font-weight: 600;
 }
 
+.nc-stepper-meta {
+  margin-top: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(11, 15, 25, 0.78);
+}
+
+.nc-stepper {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.nc-step-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid rgba(11, 15, 25, 0.16);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(11, 15, 25, 0.68);
+}
+
+.nc-step-chip-index {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(11, 15, 25, 0.18);
+  font-size: 11px;
+}
+
+.nc-step-chip.is-active {
+  background: rgba(11, 15, 25, 0.92);
+  color: #fff;
+  border-color: rgba(11, 15, 25, 0.92);
+}
+
+.nc-step-chip.is-active .nc-step-chip-index {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.nc-step-chip.is-complete {
+  background: rgba(254, 216, 87, 0.28);
+  color: #0b0f19;
+  border-color: rgba(11, 15, 25, 0.16);
+}
+
 .nc-create-form {
   display: grid;
   gap: 16px;
@@ -185,6 +238,56 @@
   font-weight: 700;
 }
 
+.nc-review-list {
+  margin-bottom: 12px;
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  color: rgba(11, 15, 25, 0.88);
+}
+
+.nc-dropzone {
+  border: 2px dashed rgba(11, 15, 25, 0.28);
+  border-radius: 12px;
+  background: #fffdf5;
+  padding: 16px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.nc-dropzone.is-drag-over {
+  border-color: #0b0f19;
+  background: #fff9df;
+}
+
+.nc-dropzone.is-uploading {
+  opacity: 0.8;
+}
+
+.nc-file-input {
+  display: none;
+}
+
+.nc-dropzone-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  color: #0b0f19;
+}
+
+.nc-dropzone-meta {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: rgba(11, 15, 25, 0.7);
+}
+
+.nc-dropzone-success {
+  margin: 10px 0 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: #0b0f19;
+}
+
 .nc-preview-wrap {
   animation: fadeIn 180ms ease-out;
 }
@@ -197,6 +300,10 @@
 @media (max-width: 900px) {
   .nc-grid-2 {
     grid-template-columns: 1fr;
+  }
+
+  .nc-stepper {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -212,5 +319,9 @@
 
   .nc-create-hero-title {
     font-size: 26px;
+  }
+
+  .nc-stepper {
+    grid-template-columns: 1fr;
   }
 }

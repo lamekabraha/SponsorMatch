@@ -91,13 +91,13 @@
   }
   
   .org {
-    margin: 0 0 10px;
+    margin: 0 0 ;
     color: var(--muted);
   }
   
   .hero-meta {
     display: flex;
-    gap: 12px;
+    /* gap: 12px; */
     align-items: center;
     color: var(--muted);
     font-size: 13px;
