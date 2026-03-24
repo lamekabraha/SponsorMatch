@@ -113,7 +113,6 @@ export default function FavouritesPage() {
     <><Navbar />
     <div className="favPage">
       
-      <Footer />
 
       <main className="favContainer">
         <div className="favTop">
@@ -181,6 +180,7 @@ export default function FavouritesPage() {
         )}
       </main>
     </div>
+          <Footer />
     </>
   );
 }
