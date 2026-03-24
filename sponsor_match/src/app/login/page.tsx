@@ -3,24 +3,23 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../Components/Header";
-import Footer from "../Components/Footer";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 
 export default function LoginPage() {
-const router = useRouter();
+  const router = useRouter();
 
-const [email, setEmail] = useState("");
-const [password, setPassword] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
-const [error, setError] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+      const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
 
   const validateEmail = (value: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(value);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -34,21 +33,32 @@ const [error, setError] = useState("");
       return;
     }
 
-    signIn('credentials', {
+    const result = await signIn("credentials", {
       email: email.toLowerCase(),
       password,
       redirect: false,
-    }).then((result) => {
-      if (result?.error) {
-        setError("Invalid email or password.");
-        return;
+    });
+
+    if (result?.error) {
+      setError("Invalid email or password.");
+      return;
+    }
+
+    if (result?.ok) {
+      // Fetch the updated session so we can read `accountTypeId` set by the credentials provider.
+      const session = await getSession();
+      const accountTypeId = (session?.user as { accountTypeId?: number })?.accountTypeId;
+
+      if (accountTypeId === 1) {
+        router.push("/Corporate/dashboard");
+      } else if (accountTypeId === 2) {
+        router.push("/VCSE/dashboard");
+      } else {
+        router.push("/");
       }
 
-      if (result?.ok) {
-        router.push("/dashboard");
-        router.refresh();
-      }
-  });
+      router.refresh();
+    }
   }
 
   return (

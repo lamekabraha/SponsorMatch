@@ -29,9 +29,9 @@ import { NextResponse, NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth-config';
-import { toStorageRelativePath } from '@/lib/storage';
+import { resolveStoragePath, toStorageRelativePath } from '@/lib/storage';
 import { QueryResult } from 'mysql2';
-import { promises } from 'dns';
+import fs from 'fs/promises';
 
 // session helper
 async function GetAccountId(): Promise<number | null> {
@@ -114,7 +114,26 @@ async function GetCampaignData(accountId: number): Promise<any[]> {
         [accountId]
     );
     const campaigns = rows as any[];
-    return campaigns;
+
+    const campaignsWithValidatedCover = await Promise.all(
+        campaigns.map(async (campaign) => {
+            const relativeCoverPath = toStorageRelativePath(campaign.CoverImage);
+
+            if (!relativeCoverPath) {
+                return { ...campaign, CoverImage: null };
+            }
+
+            try {
+                await fs.access(resolveStoragePath(relativeCoverPath));
+                return { ...campaign, CoverImage: relativeCoverPath };
+            } catch {
+                // Avoid frontend 404s by falling back when the DB path is stale.
+                return { ...campaign, CoverImage: null };
+            }
+        })
+    );
+
+    return campaignsWithValidatedCover;
 }
 
 async function GetCampaignTypes(accountId: number): Promise<any[]>{
