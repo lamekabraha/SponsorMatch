@@ -8,7 +8,7 @@ interface OrgPref {
     name?: string;
 }
 
-interface CampainBenefits {
+interface CampaignBenefits {
     benefitId: number;
     benefitName: string;
 }
@@ -117,7 +117,7 @@ export default function PreferencesForm({ onComplete }: PreferencesFormProps) {
                         htmlFor={`pref-${orgPref.VcseTypeId}`}
                         className="font-Body text-Black cursor-pointer flex-1"
                     >
-                        {orgPref.Name ?? orgPref.VcseType ?? `Type ${orgPref.VcseTypeId}`}
+                        {orgPref.name ?? orgPref.VcseType ?? `Type ${orgPref.VcseTypeId}`}
                     </label>
                 </div>
             ))}

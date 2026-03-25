@@ -5,7 +5,7 @@ import { pool } from '@/lib/db';
 function normalizeRow(row: Record<string, unknown>): { VcseTypeId: number; Name: string } {
   const benefitId = (row.BenefitId as number);
   const benefitName = (row.Benefit as string);
-  return { benefitId: Number(benefitId), benefitName: String(benefitName) };
+  return { VcseTypeId: Number(benefitId), Name: String(benefitName) };
 }
 
 export async function GET() {
