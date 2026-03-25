@@ -22,7 +22,10 @@ export default function MyAccountPage() {
     
   });
   const [form1, setForm1] = useState({
-    socialmedia: ""
+    instagram: "",
+    twitter:"",
+    tiktok:"",
+    facebook:"",
   })
 
   const [savedMessage, setSavedMessage] = useState("");
@@ -322,35 +325,45 @@ export default function MyAccountPage() {
                   <p>add your social media links</p>
                 </div>
                 <div className="formGroup">
-                  <label htmlFor="socialmedia">Social Media Link</label>
+                  <label htmlFor="instagram">Link to Instagram page</label>
                   <input
-                    id = "socialmedia"
-                    name = "socialmedia"
+                    id = "instagram"
+                    name = "instagram"
                     type="text"
-                    value={form1.socialmedia}
+                    value={form1.instagram}
                     onChange={handleChange1}
                     className="accountInput"
-                    placeholder="Enter your social media link"
+                    placeholder="Enter your Instagram link here"
                     />
-                    <label htmlFor="socialmedia1">Social Media Link</label>
+                    <label htmlFor="twitter">Link to Twitter page</label>
                   <input
-                    id = "socialmedia1"
-                    name = "socialmedia1"
+                    id = "twitter"
+                    name = "twitter"
                     type="text"
-                    value={form1.socialmedia}
+                    value={form1.twitter}
                     onChange={handleChange1}
                     className="accountInput"
-                    placeholder="Enter your social media link"
+                    placeholder="Enter your Twitter link here"
                     />
-                    <label htmlFor="socialmedia2">Social Media Link</label>
+                    <label htmlFor="tiktok">Link to Tiktok page</label>
                   <input
-                    id = "socialmedia2"
-                    name = "socialmedia2"
+                    id = "tiktok"
+                    name = "tiktok"
                     type="text"
-                    value={form1.socialmedia}
+                    value={form1.tiktok}
                     onChange={handleChange1}
                     className="accountInput"
-                    placeholder="Enter your social media link"
+                    placeholder="Enter your Tiktok link here"
+                    />
+                    <label htmlFor="facebook">Link to Facebook Page</label>
+                  <input
+                    id = "facebook"
+                    name = "facebook"
+                    type="text"
+                    value={form1.facebook}
+                    onChange={handleChange1}
+                    className="accountInput"
+                    placeholder="Enter your Facebook link here"
                     />
                     {savedMessage && (
                   <div className="successMessage">{savedMessage}</div>
