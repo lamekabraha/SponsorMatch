@@ -51,9 +51,13 @@ export async function POST(req: Request) {
 
         // 2. Update account with IndustrySector, CompanySize, Website
         await connection.execute(
-            `UPDATE sponsor_match.account 
-             SET IndustrySector = ?, CompanySize = ?, Website = ? 
-             WHERE AccountId = ?`,
+            `UPDATE sponsor_match.account a
+            JOIN sponsor_match.business b ON a.AccountId = b.AccountId
+            SET 
+            a.IndustrySector = ?,
+            a.Website = ?,
+            b.CompanySize = ?
+            WHERE a.AccountId = ?;`,
             [
                 industry.trim(),
                 companySize.trim(),

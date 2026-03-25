@@ -102,13 +102,15 @@ export default function RegisterPage() {
 
   
   return (
-    <><Header />
-    <div className="fixed top-0 right-0 h-[50px] bg-Yellow z-[200] flex items-center space-x-4 justify-end pr-4 ">
-          <Link href="/login"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-200">Login</button></Link>         
-          <Link href="/"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-200">Home</button></Link>
-        </div>
-    <div className="reg-page">
-      <Footer />
+    <>
+    <div className="z-100 fixed w-full">
+      <Header/>
+      <div className="fixed top-0 right-0 h-[50px] bg-Yellow z-200 flex items-center space-x-4 justify-end pr-4 ">
+        <Link href="/login"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-200">Login</button></Link>         
+        <Link href="/"><button className="px-4 py-2 font-Body bg-Yellow hover:bg-White rounded relative z-200">Home</button></Link>
+      </div>
+    </div>
+    <div className="reg-page sm:flex sm:left-0 sm:right-0 sm:top-0 sm:bottom-0 sm:z-1">
       <div className="reg-header">
         <h1 className="text-3xl font-Heading text-center mt-10">Create your account</h1>
         <p className="reg-subtitle">Join our platform and start connecting</p>
@@ -139,15 +141,16 @@ export default function RegisterPage() {
 
         <form className="reg-form" onSubmit={handleSubmit}>
           <label className="reg-label">First Name <span className="reg-required">*</span></label>
-          <input className="reg-input" type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+          <input className="reg-input" type="text" placeholder="Enter your first name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
           <label className="reg-label">Last Name <span className="reg-required">*</span></label>
-          <input className="reg-input" type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+          <input className="reg-input" type="text" placeholder="Enter your last name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
           <label className="reg-label">
             Email address <span className="reg-required">*</span>
           </label>
           <input
             className="reg-input"
             type="email"
+            placeholder="Enter your email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)} />
 
@@ -155,7 +158,7 @@ export default function RegisterPage() {
             {accountType === "business" ? "Business Name" : "Organisation Name"}{" "}
             <span className="reg-required">*</span>
           </label>
-          <input className="reg-input" type="text" value={accountName} onChange={(e) => setAccountName(e.target.value)} />
+          <input className="reg-input" type="text" placeholder="Enter your organisations name" value={accountName} onChange={(e) => setAccountName(e.target.value)} />
 
           <label className="reg-label">
             Password <span className="reg-required">*</span>
@@ -164,6 +167,7 @@ export default function RegisterPage() {
             <input
               className="reg-input"
               type={showPassword ? "text" : "password"}
+              placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)} />
             <button
@@ -182,6 +186,7 @@ export default function RegisterPage() {
             <input
               className="reg-input"
               type={showConfirm ? "text" : "password"}
+              placeholder="Confirm password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)} />
             <button

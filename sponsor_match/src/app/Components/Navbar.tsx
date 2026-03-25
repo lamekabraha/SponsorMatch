@@ -1,68 +1,267 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleUser } from "@fortawesome/free-solid-svg-icons";
+import { useRouter } from "next/navigation";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faCircleUser,
+  faMagnifyingGlass,
+} from "@fortawesome/free-solid-svg-icons";
 import "./Navbar.css";
 
 export default function Navbar() {
-    return (
-        <>
-            <h1 className="hide-mobile fixed text-3xl font-Heading text-center top-0 relative z-200">Sponsor Match</h1>
-            <div style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "50px",
-                backgroundColor: "#fed857",
-                zIndex: 50
-            }} />
-            
-            <div className="fixed top-0 left-0 z-200 group"> 
-                <Link href="">
-                    <img
-                        src="/Logo1.png"
-                        alt="Funding Logo"
-                        width={150}
-                        height={150}
-                        className="relative z-100 "
-                        
-                    />
-                </Link>
-                
-                <div 
-                    className = "absolute top-0 left-0 w-64 h-screen-[50px] bg-Yellow shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-300"
-                    
-                    >
-                     <div className="p-6 space-y-4">
-                        <p className="font-Heading text-lg">Menu</p>
-                        <Link href="/dashboard" className="font-Heading hover:underline block mb-4"> Dashboard</Link>
-                        <Link href="/myaccount" className="font-Heading hover:underline block mb-4">My Account</Link>
-                        <Link href="/search" className="font-Heading hover:underline block mb-4">Search</Link>
-                        <Link href="/newcampaign" className="font-Heading hover:underline block mb-4">Create Campaign</Link>
-                        <Link href="/campaign" className="font-Heading hover:underline block mb-4">My Campaign</Link>
-                        <Link href="/favourites" className="font-Heading hover:underline block mb-4">Favourites</Link>
-                        <Link href="/" className="font-Heading hover:underline block mb-4">Logout</Link>
-                     </div>   
-                </div>
-                
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
+  const [userRole, setUserRole] = useState<number |string>()
+  const router = useRouter();
+
+  useEffect(() => {
+  const checkMobile = () => {
+    setIsMobile(window.innerWidth <= 768);
+  };
+
+  checkMobile();
+  window.addEventListener("resize", checkMobile);
+
+  const fetchAccountRole = async () => {
+    try {
+      const res = await fetch("/api/getAccountData");
+      const data = await res.json();
+
+      const account = data.data?.[0];
+      console.log(account.AccountTypeId)
+
+      if (data.success && account) {
+        setUserRole(account.AccountTypeId);
+      }
+    } catch {
+      console.log("Failed to fetch user role");
+    }
+  };
+
+  fetchAccountRole();
+
+  return () => window.removeEventListener("resize", checkMobile);
+}, []);
+
+  const closeAllMenus = () => {
+    setMenuOpen(false);
+    setAccountOpen(false);
+    setMobileSearchOpen(false);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const trimmed = searchQuery.trim();
+    closeAllMenus();
+
+    if (!trimmed) {
+      router.push("/search");
+      return;
+    }
+
+    router.push(`/search?q=${encodeURIComponent(trimmed)}`);
+  };
+
+  const handleMenuToggle = () => {
+    if (!isMobile) return;
+    setMenuOpen((prev) => !prev);
+    setAccountOpen(false);
+    setMobileSearchOpen(false);
+  };
+
+  const handleAccountToggle = () => {
+    if (!isMobile) return;
+    setAccountOpen((prev) => !prev);
+    setMenuOpen(false);
+    setMobileSearchOpen(false);
+  };
+
+  const handleMobileSearchToggle = () => {
+    if (!isMobile) return;
+    setMobileSearchOpen((prev) => !prev);
+    setMenuOpen(false);
+    setAccountOpen(false);
+  };
+  const dashboardHref =
+  userRole === 1 ? "/Corporate/dashboard" : "/VCSE/dashboard";
+  return (
+    <div className="navbarShell">
+      <div className="navbarInner">
+        <div className="group relative navbarLeft">
+          <button
+            type="button"
+            className="navTrigger"
+            onClick={handleMenuToggle}
+            aria-label="Open navigation menu"
+          >
+            <div className={`hamburger ${menuOpen ? "open" : ""}`}>
+              <span></span>
+              <span></span>
+              <span></span>
             </div>
-            <div 
-                className="fixed top-2 right-0 z-[300] group"
+
+            <img
+              src="/Logo1.png"
+              alt="Funding Logo"
+              width={175}
+              height={175}
+              className="navbarLogo"
+            />
+          </button>
+
+          <div
+            className={`navDropdown navDropdownLeft ${menuOpen ? "open" : ""}`}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="navDropdownCard"
             >
-                <FontAwesomeIcon icon={faCircleUser} className="text-2xl bg-Yellow px-4 py-1 text-Black rounded "/>
-                <div onClick={(e) => e.stopPropagation()} 
-                    className="absolute top-7 right-0 w-64 h-screen-[50px] bg-Yellow shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-300"
-                    >
-                     <div className="p-6 space-y-4">                        
-                        <Link href="/myaccount" className="font-Heading hover:underline block mb-4">My Account</Link>
-                        <Link href="/" className="font-Heading hover:underline block mb-4">Logout</Link>
-                     </div>   
-                </div>
+              <p className="navDropdownTitle">Menu</p>
+
+              <Link
+                  href={dashboardHref}
+                  className="navDropdownLink"
+                  onClick={closeAllMenus}
+              >
+                  Dashboard
+              </Link>
+              <Link
+                href="/myaccount"
+                className="navDropdownLink"
+                onClick={closeAllMenus}
+              >
+                My Account
+              </Link>
+              <Link
+                href="/newcampaign"
+                className="navDropdownLink"
+                onClick={closeAllMenus}
+              >
+                Create Campaign
+              </Link>
+              <Link
+                href="/campaign"
+                className="navDropdownLink"
+                onClick={closeAllMenus}
+              >
+                My Campaign
+              </Link>
+              <Link
+                href="/favourites"
+                className="navDropdownLink"
+                onClick={closeAllMenus}
+              >
+                Favourites
+              </Link>
+              <Link
+                href="/"
+                className="navDropdownLink logoutLink"
+                onClick={closeAllMenus}
+              >
+                Logout
+              </Link>
             </div>
-        </>
-    );
+          </div>
+        </div>
+
+        <div className="navbarTitleWrap">
+          <Link href="/" className="navbarTitle font-Heading">
+            SponsorMatch
+          </Link>
+        </div>
+
+        <div className="navbarRight">
+          <form className="navbarSearch desktopSearch" onSubmit={handleSearch}>
+            <input
+              type="text"
+              className="navbarSearchInput"
+              placeholder="Search campaigns..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Search campaigns"
+            />
+            <button
+              type="submit"
+              className="navbarSearchButton"
+              aria-label="Search"
+            >
+              <FontAwesomeIcon icon={faMagnifyingGlass} />
+            </button>
+          </form>
+
+          <div className="mobileSearchWrap">
+            <button
+              type="button"
+              className="navbarSearchButton mobileSearchButton"
+              onClick={handleMobileSearchToggle}
+              aria-label="Open search"
+            >
+              <FontAwesomeIcon icon={faMagnifyingGlass} />
+            </button>
+
+            {mobileSearchOpen && (
+              <form className="mobileSearchDropdown" onSubmit={handleSearch}>
+                <input
+                  type="text"
+                  className="mobileSearchInput"
+                  placeholder="Search campaigns..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  autoFocus
+                />
+                <button type="submit" className="mobileSearchSubmit">
+                  Search
+                </button>
+              </form>
+            )}
+          </div>
+
+          <div className="group relative">
+            <button
+              type="button"
+              className="profileButton"
+              onClick={handleAccountToggle}
+              aria-label="Open account menu"
+            >
+              <FontAwesomeIcon icon={faCircleUser} className="profileIcon" />
+            </button>
+
+            <div
+              className={`navDropdown navDropdownRight ${
+                accountOpen ? "open" : ""
+              }`}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="navDropdownCard"
+              >
+                <p className="navDropdownTitle">Account</p>
+
+                <Link
+                  href="/myaccount"
+                  className="navDropdownLink"
+                  onClick={closeAllMenus}
+                >
+                  My Account
+                </Link>
+                <Link
+                  href="/"
+                  className="navDropdownLink logoutLink"
+                  onClick={closeAllMenus}
+                >
+                  Logout
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
