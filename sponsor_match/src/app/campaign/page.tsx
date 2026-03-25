@@ -65,7 +65,7 @@ export default function Page() {
                     <li>Social media acknowledgement (2 posts)</li>
                     <li>Name on donors board</li>
                     <li>Invitation to community event</li>
-                  </ul>
+                </ul>
                 </div>
 
                 <div className="package">

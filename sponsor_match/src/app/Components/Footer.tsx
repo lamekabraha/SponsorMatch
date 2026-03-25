@@ -5,7 +5,7 @@ import Link from "next/link";
 export default function Footer() {
     return (
     <>
-    <div className="bg-Black w-full flex sticky bottom-0 left-0 justify-end gap-4">
+    <div className="bg-Black w-full flex  bottom-0 left-0 justify-end gap-4">
         <Link href = "https://www.instagram.com/fundingiukire/" target="_blank">
                 <img
                     src="/instagram.png"
