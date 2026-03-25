@@ -19,7 +19,11 @@ export default function MyAccountPage() {
     industry: "technology",
     companySize: "11-50",
     website: "https://bobmedia.co.uk",
+    
   });
+  const [form1, setForm1] = useState({
+    socialmedia: ""
+  })
 
   const [savedMessage, setSavedMessage] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -29,6 +33,11 @@ export default function MyAccountPage() {
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+  const handleChange1 = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setForm1({...form1,[e.target.name]:e.target.value})
+  }
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -305,6 +314,53 @@ export default function MyAccountPage() {
                     <span className="overviewLabel">Website</span>
                     <span className="overviewValue">{form.website || "Not set"}</span>
                   </div>
+                </div>
+              </div>
+              <div className="accountCard">
+                <div className="sectionHeader">
+                  <h2>Social media</h2>
+                  <p>add your social media links</p>
+                </div>
+                <div className="formGroup">
+                  <label htmlFor="socialmedia">Social Media Link</label>
+                  <input
+                    id = "socialmedia"
+                    name = "socialmedia"
+                    type="text"
+                    value={form1.socialmedia}
+                    onChange={handleChange1}
+                    className="accountInput"
+                    placeholder="Enter your social media link"
+                    />
+                    <label htmlFor="socialmedia1">Social Media Link</label>
+                  <input
+                    id = "socialmedia1"
+                    name = "socialmedia1"
+                    type="text"
+                    value={form1.socialmedia}
+                    onChange={handleChange1}
+                    className="accountInput"
+                    placeholder="Enter your social media link"
+                    />
+                    <label htmlFor="socialmedia2">Social Media Link</label>
+                  <input
+                    id = "socialmedia2"
+                    name = "socialmedia2"
+                    type="text"
+                    value={form1.socialmedia}
+                    onChange={handleChange1}
+                    className="accountInput"
+                    placeholder="Enter your social media link"
+                    />
+                    {savedMessage && (
+                  <div className="successMessage">{savedMessage}</div>
+                )}
+
+                <div className="actionRow">
+                  <button type="submit" className="btn btnPrimary">
+                    Save Changes
+                  </button>
+                </div>
                 </div>
               </div>
 
