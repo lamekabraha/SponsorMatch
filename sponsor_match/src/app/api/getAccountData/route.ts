@@ -18,7 +18,10 @@ export async function GET() {
 
     try {
         const [rows] = await pool.execute(
-            `select * from account where AccountId = ?`, [accountId]
+            `select a.Name, a.AccountTypeId, a.CompanyLogo as logo, l.Address, a.Website, a.Instagram, a.Twitter, a.Facebook, a.LinkedIn
+            from account a
+            inner join location l on a.AccountId = l.AccountId
+            where a.AccountId = ?`, [accountId]
         );
         const accountData = rows as any[];
         return NextResponse.json({ success: true, data: accountData });

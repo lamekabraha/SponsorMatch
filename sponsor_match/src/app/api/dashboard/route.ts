@@ -30,7 +30,6 @@ import { pool } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth-config';
 import { resolveStoragePath, toStorageRelativePath } from '@/lib/storage';
-import { QueryResult } from 'mysql2';
 import fs from 'fs/promises';
 
 // session helper

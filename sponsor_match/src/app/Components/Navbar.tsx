@@ -8,7 +8,24 @@ import {
   faCircleUser,
   faMagnifyingGlass,
 } from "@fortawesome/free-solid-svg-icons";
+import { toStorageRelativePath } from "@/lib/storagePaths";
 import "./Navbar.css";
+
+type NavbarAccount = {
+  AccountTypeId?: number | string;
+  logo?: string;
+};
+
+/** Turn DB `CompanyLogo` (relative storage or absolute URL) into a usable `img` src. */
+function resolveLogoImageSrc(stored: string | null | undefined): string | null {
+  if (stored == null || String(stored).trim() === "") return null;
+  const raw = String(stored).trim();
+  if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
+  if (raw.startsWith("/api/files/")) return raw;
+  if (raw.startsWith("/")) return raw;
+  const relative = toStorageRelativePath(raw);
+  return relative ? `/api/files/${relative}` : null;
+}
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -16,37 +33,41 @@ export default function Navbar() {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobile, setIsMobile] = useState(false);
-  const [userRole, setUserRole] = useState<number |string>()
+  const [userData, setUserData] = useState<NavbarAccount | null>(null);
+  const [logoLoadFailed, setLogoLoadFailed] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-  const checkMobile = () => {
-    setIsMobile(window.innerWidth <= 768);
-  };
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
 
-  checkMobile();
-  window.addEventListener("resize", checkMobile);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
 
-  const fetchAccountRole = async () => {
-    try {
-      const res = await fetch("/api/getAccountData");
-      const data = await res.json();
+    const fetchAccountData = async () => {
+      try {
+        const res = await fetch("/api/getAccountData");
+        const data = await res.json();
 
-      const account = data.data?.[0];
-      console.log(account.AccountTypeId)
+        const account = data.data?.[0];
 
-      if (data.success && account) {
-        setUserRole(account.AccountTypeId);
+        if (data.success && account) {
+          setUserData(account);
+        }
+      } catch {
+        console.log("Failed to fetch user role");
       }
-    } catch {
-      console.log("Failed to fetch user role");
-    }
-  };
+    };
 
-  fetchAccountRole();
+    fetchAccountData();
 
-  return () => window.removeEventListener("resize", checkMobile);
-}, []);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  useEffect(() => {
+    setLogoLoadFailed(false);
+  }, [userData?.logo]);
 
   const closeAllMenus = () => {
     setMenuOpen(false);
@@ -88,8 +109,13 @@ export default function Navbar() {
     setMenuOpen(false);
     setAccountOpen(false);
   };
+  const accountTypeId = userData?.AccountTypeId;
   const dashboardHref =
-  userRole === 1 ? "/Corporate/dashboard" : "/VCSE/dashboard";
+    accountTypeId === 1 || accountTypeId === "1"
+      ? "/Corporate/dashboard"
+      : "/VCSE/dashboard";
+  const profileLogoSrc = resolveLogoImageSrc(userData?.logo);
+
   return (
     <div className="navbarShell">
       <div className="navbarInner">
@@ -229,7 +255,16 @@ export default function Navbar() {
               onClick={handleAccountToggle}
               aria-label="Open account menu"
             >
-              <FontAwesomeIcon icon={faCircleUser} className="profileIcon" />
+              {profileLogoSrc && !logoLoadFailed ? (
+                <img
+                  src={profileLogoSrc}
+                  alt="Profile"
+                  className="profileIcon"
+                  onError={() => setLogoLoadFailed(true)}
+                />
+              ) : (
+                <FontAwesomeIcon icon={faCircleUser} className="profileIcon" />
+              )}
             </button>
 
             <div

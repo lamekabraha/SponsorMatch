@@ -98,7 +98,6 @@
   .hero-meta {
     display: flex;
     /* gap: 12px; */
-    align-items: center;
     color: var(--muted);
     font-size: 13px;
   }
