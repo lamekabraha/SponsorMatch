@@ -39,7 +39,13 @@ export default function OnboardingWizard({ accountType }: OnboardingWizardProps)
 
     const handleStepComplete = () => {
         if (currentStep >= steps.length) {
-            router.push('/dashboard');
+            if (accountType === 1) {
+                router.push('/Corporate/dashboard');
+            }else if (accountType === 2) {
+                router.push('/VCSE/dashboard');
+            }else {
+                router.push('/')
+            }
             router.refresh();
         } else {
             setCurrentStep((s) => s + 1);

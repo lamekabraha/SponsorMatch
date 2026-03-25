@@ -141,15 +141,16 @@ export default function RegisterPage() {
 
         <form className="reg-form" onSubmit={handleSubmit}>
           <label className="reg-label">First Name <span className="reg-required">*</span></label>
-          <input className="reg-input" type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+          <input className="reg-input" type="text" placeholder="Enter your first name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
           <label className="reg-label">Last Name <span className="reg-required">*</span></label>
-          <input className="reg-input" type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+          <input className="reg-input" type="text" placeholder="Enter your last name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
           <label className="reg-label">
             Email address <span className="reg-required">*</span>
           </label>
           <input
             className="reg-input"
             type="email"
+            placeholder="Enter your email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)} />
 
@@ -157,7 +158,7 @@ export default function RegisterPage() {
             {accountType === "business" ? "Business Name" : "Organisation Name"}{" "}
             <span className="reg-required">*</span>
           </label>
-          <input className="reg-input" type="text" value={accountName} onChange={(e) => setAccountName(e.target.value)} />
+          <input className="reg-input" type="text" placeholder="Enter your organisations name" value={accountName} onChange={(e) => setAccountName(e.target.value)} />
 
           <label className="reg-label">
             Password <span className="reg-required">*</span>
@@ -166,6 +167,7 @@ export default function RegisterPage() {
             <input
               className="reg-input"
               type={showPassword ? "text" : "password"}
+              placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)} />
             <button
@@ -184,6 +186,7 @@ export default function RegisterPage() {
             <input
               className="reg-input"
               type={showConfirm ? "text" : "password"}
+              placeholder="Confirm password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)} />
             <button

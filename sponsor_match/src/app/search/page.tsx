@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
 
@@ -39,7 +40,7 @@ const campaigns: Campaign[] = [
   },
   {
     id: "3",
-    title: "Homeless Support Initiative",
+    title: "Homeless Support",
     org: "Shelter Plus",
     category: "Poverty Relief",
     deadline: "11/03/2026",
@@ -63,17 +64,22 @@ function pct(raised: number, goal: number) {
 }
 
 export default function SearchPage() {
+  const searchParams = useSearchParams();
+
   const [query, setQuery] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [maxBudget, setMaxBudget] = useState<number>(20000);
   const [distance, setDistance] = useState("any");
 
-  // ✅ forces one clean grid layout pass on client-side navigation
   const [layoutKey, setLayoutKey] = useState(0);
+
   useEffect(() => {
+    const q = searchParams.get("q") || "";
+    setQuery(q);
+
     const raf = requestAnimationFrame(() => setLayoutKey((k) => k + 1));
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [searchParams]);
 
   const categories = useMemo(() => {
     return Array.from(new Set(campaigns.map((c) => c.category))).sort();
@@ -116,7 +122,6 @@ export default function SearchPage() {
       <Navbar />
 
       <main className="mt-[52px] mx-auto max-w-[1200px] px-4 pb-20 pt-6">
-       
         <section className="rounded-2xl border border-black/10 bg-[#fffdf2] p-5 shadow-[0_10px_26px_rgba(11,15,25,0.06)]">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
@@ -128,21 +133,22 @@ export default function SearchPage() {
               </p>
             </div>
 
-            <div className="flex w-full flex-col gap-2 md:w-[520px] md:flex-row">
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search campaigns..."
-                className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 font-semibold outline-none shadow-[0_10px_26px_rgba(11,15,25,0.05)] focus:border-black/25 focus:shadow-[0_0_0_4px_rgba(254,216,87,0.35)]"
-              />
-              
+            <div className="w-full md:w-auto">
+              {query ? (
+                <div className="rounded-2xl border border-black/10 bg-white px-4 py-3 font-semibold shadow-[0_10px_26px_rgba(11,15,25,0.05)]">
+                  Showing results for:{" "}
+                  <span className="font-extrabold text-black">"{query}"</span>
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-black/10 bg-white px-4 py-3 font-semibold text-black/50 shadow-[0_10px_26px_rgba(11,15,25,0.05)]">
+                  Use the box above to search for campaigns.
+                </div>
+              )}
             </div>
           </div>
         </section>
 
-       
         <section className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-[320px_1fr]">
-        
           <aside className="rounded-2xl border border-black/10 bg-[#fed857] p-5 shadow-[0_10px_26px_rgba(11,15,25,0.06)]">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-extrabold">Filters</h2>
@@ -155,12 +161,12 @@ export default function SearchPage() {
             </div>
 
             <div className="mt-5">
-              <div className="text-sm font-extrabold mb-2">Category</div>
+              <div className="mb-2 text-sm font-extrabold">Category</div>
               <div className="space-y-2">
                 {categories.map((cat) => (
                   <label
                     key={cat}
-                    className="flex items-center gap-2 cursor-pointer"
+                    className="flex cursor-pointer items-center gap-2"
                   >
                     <input
                       type="checkbox"
@@ -175,9 +181,9 @@ export default function SearchPage() {
             </div>
 
             <div className="mt-6">
-            <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between">
                 <span className="text-sm font-extrabold">Max Budget</span>
-            <span className="w-24 text-right text-sm font-extrabold tabular-nums">
+                <span className="w-24 text-right text-sm font-extrabold tabular-nums">
                   {formatGBP(maxBudget)}
                 </span>
               </div>
@@ -198,9 +204,8 @@ export default function SearchPage() {
               </div>
             </div>
 
-           
             <div className="mt-6">
-              <div className="text-sm font-extrabold mb-2">Distance</div>
+              <div className="mb-2 text-sm font-extrabold">Distance</div>
               <select
                 value={distance}
                 onChange={(e) => setDistance(e.target.value)}
@@ -215,7 +220,6 @@ export default function SearchPage() {
             </div>
           </aside>
 
-    
           <section className="min-w-0">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-extrabold">Results</h2>
@@ -226,12 +230,12 @@ export default function SearchPage() {
 
             {filtered.length === 0 ? (
               <div className="mt-4 rounded-2xl border border-black/10 bg-white p-6 shadow">
-                No campaigns match your filters.
+                No campaigns match your search or filters.
               </div>
             ) : (
               <div
                 key={layoutKey}
-                className="mt-4 grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]"
+                className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3"
               >
                 {filtered.map((c) => {
                   const progress = pct(c.raised, c.goal);
@@ -248,14 +252,14 @@ export default function SearchPage() {
                           alt={c.title}
                           className="h-full w-full object-cover"
                         />
-                        <span className="absolute bottom-3 right-3 bg-black text-white text-xs font-bold px-3 py-1 rounded-full">
+                        <span className="absolute bottom-3 right-3 rounded-full bg-black px-3 py-1 text-xs font-bold text-white">
                           Goal: {formatGBP(c.goal)}
                         </span>
                       </div>
 
-                      <div className="p-4 space-y-3">
+                      <div className="space-y-3 p-4">
                         <div className="flex justify-between text-xs font-bold text-black/60">
-                          <span className="bg-[#fed857]/40 px-3 py-1 rounded-full">
+                          <span className="rounded-full bg-[#fed857]/40 px-3 py-1">
                             {c.category}
                           </span>
                           <span>Deadline: {c.deadline}</span>
@@ -273,9 +277,9 @@ export default function SearchPage() {
                             <span>{formatGBP(c.raised)}</span>
                             <span>{progress}%</span>
                           </div>
-                          <div className="h-2 bg-black/10 rounded-full mt-1">
+                          <div className="mt-1 h-2 rounded-full bg-black/10">
                             <div
-                              className="h-2 bg-black rounded-full"
+                              className="h-2 rounded-full bg-black"
                               style={{ width: `${progress}%` }}
                             />
                           </div>
@@ -290,7 +294,7 @@ export default function SearchPage() {
 
                         <Link
                           href="/campaign"
-                          className="block text-center bg-black text-white font-extrabold py-3 rounded-xl hover:bg-[#111827]"
+                          className="block rounded-xl bg-black py-3 text-center font-extrabold text-white hover:bg-[#111827]"
                         >
                           Read More
                         </Link>

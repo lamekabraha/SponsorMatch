@@ -19,7 +19,14 @@ export default function MyAccountPage() {
     industry: "technology",
     companySize: "11-50",
     website: "https://bobmedia.co.uk",
+    
   });
+  const [form1, setForm1] = useState({
+    instagram: "",
+    twitter:"",
+    tiktok:"",
+    facebook:"",
+  })
 
   const [savedMessage, setSavedMessage] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -29,6 +36,11 @@ export default function MyAccountPage() {
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+  const handleChange1 = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setForm1({...form1,[e.target.name]:e.target.value})
+  }
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -305,6 +317,63 @@ export default function MyAccountPage() {
                     <span className="overviewLabel">Website</span>
                     <span className="overviewValue">{form.website || "Not set"}</span>
                   </div>
+                </div>
+              </div>
+              <div className="accountCard">
+                <div className="sectionHeader">
+                  <h2>Social media</h2>
+                  <p>add your social media links</p>
+                </div>
+                <div className="formGroup">
+                  <label htmlFor="instagram">Link to Instagram page</label>
+                  <input
+                    id = "instagram"
+                    name = "instagram"
+                    type="text"
+                    value={form1.instagram}
+                    onChange={handleChange1}
+                    className="accountInput"
+                    placeholder="Enter your Instagram link here"
+                    />
+                    <label htmlFor="twitter">Link to Twitter page</label>
+                  <input
+                    id = "twitter"
+                    name = "twitter"
+                    type="text"
+                    value={form1.twitter}
+                    onChange={handleChange1}
+                    className="accountInput"
+                    placeholder="Enter your Twitter link here"
+                    />
+                    <label htmlFor="tiktok">Link to Tiktok page</label>
+                  <input
+                    id = "tiktok"
+                    name = "tiktok"
+                    type="text"
+                    value={form1.tiktok}
+                    onChange={handleChange1}
+                    className="accountInput"
+                    placeholder="Enter your Tiktok link here"
+                    />
+                    <label htmlFor="facebook">Link to Facebook Page</label>
+                  <input
+                    id = "facebook"
+                    name = "facebook"
+                    type="text"
+                    value={form1.facebook}
+                    onChange={handleChange1}
+                    className="accountInput"
+                    placeholder="Enter your Facebook link here"
+                    />
+                    {savedMessage && (
+                  <div className="successMessage">{savedMessage}</div>
+                )}
+
+                <div className="actionRow">
+                  <button type="submit" className="btn btnPrimary">
+                    Save Changes
+                  </button>
+                </div>
                 </div>
               </div>
 

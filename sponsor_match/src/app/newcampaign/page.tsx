@@ -556,7 +556,6 @@ export default function NewCampaignPage() {
                       className="nc-input"
                       value={formData.type}
                       onChange={(e) => updateField("type", e.target.value)}
-                      defaultValue=''
                     >
                       <option value="">Select a category</option>
                       {categories.map((category) => (
@@ -571,7 +570,7 @@ export default function NewCampaignPage() {
                     </label>
                     <input
                       className="nc-input"
-                      value={accountDetails[0]?.Name}
+                      value={accountDetails[0]?.Name ?? ''}
                       disabled
                     />
                   </div><div className="nc-col-span-2">
@@ -580,7 +579,7 @@ export default function NewCampaignPage() {
                     </label>
                     <input
                       className="nc-input"
-                      value={accountDetails[0]?.Address}
+                      value={accountDetails[0]?.Address ?? ''}
                       onChange={(e) => updateField("location", e.target.value)}
                       disabled
                     />
