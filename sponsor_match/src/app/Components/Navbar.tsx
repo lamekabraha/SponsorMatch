@@ -16,18 +16,37 @@ export default function Navbar() {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobile, setIsMobile] = useState(false);
-
+  const [userRole, setUserRole] = useState<number |string>()
   const router = useRouter();
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
+  const checkMobile = () => {
+    setIsMobile(window.innerWidth <= 768);
+  };
 
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
+  checkMobile();
+  window.addEventListener("resize", checkMobile);
+
+  const fetchAccountRole = async () => {
+    try {
+      const res = await fetch("/api/getAccountData");
+      const data = await res.json();
+
+      const account = data.data?.[0];
+      console.log(account.AccountTypeId)
+
+      if (data.success && account) {
+        setUserRole(account.AccountTypeId);
+      }
+    } catch {
+      console.log("Failed to fetch user role");
+    }
+  };
+
+  fetchAccountRole();
+
+  return () => window.removeEventListener("resize", checkMobile);
+}, []);
 
   const closeAllMenus = () => {
     setMenuOpen(false);
@@ -69,7 +88,8 @@ export default function Navbar() {
     setMenuOpen(false);
     setAccountOpen(false);
   };
-
+  const dashboardHref =
+  userRole === 1 ? "/Corporate/dashboard" : "/VCSE/dashboard";
   return (
     <div className="navbarShell">
       <div className="navbarInner">
@@ -105,11 +125,11 @@ export default function Navbar() {
               <p className="navDropdownTitle">Menu</p>
 
               <Link
-                href="/dashboard"
-                className="navDropdownLink"
-                onClick={closeAllMenus}
+                  href={dashboardHref}
+                  className="navDropdownLink"
+                  onClick={closeAllMenus}
               >
-                Dashboard
+                  Dashboard
               </Link>
               <Link
                 href="/myaccount"
