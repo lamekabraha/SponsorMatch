@@ -566,7 +566,7 @@ export default function NewCampaignPage() {
                     </select>
                   </div><div className="nc-col-span-2">
                     <label className="nc-label">
-                      Company Name
+                      Organisation Name
                     </label>
                     <input
                       className="nc-input"
