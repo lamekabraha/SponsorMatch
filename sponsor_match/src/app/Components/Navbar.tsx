@@ -8,7 +8,24 @@ import {
   faCircleUser,
   faMagnifyingGlass,
 } from "@fortawesome/free-solid-svg-icons";
+import { toStorageRelativePath } from "@/lib/storagePaths";
 import "./Navbar.css";
+
+type NavbarAccount = {
+  AccountTypeId?: number | string;
+  logo?: string;
+};
+
+/** Turn DB `CompanyLogo` (relative storage or absolute URL) into a usable `img` src. */
+function resolveLogoImageSrc(stored: string | null | undefined): string | null {
+  if (stored == null || String(stored).trim() === "") return null;
+  const raw = String(stored).trim();
+  if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
+  if (raw.startsWith("/api/files/")) return raw;
+  if (raw.startsWith("/")) return raw;
+  const relative = toStorageRelativePath(raw);
+  return relative ? `/api/files/${relative}` : null;
+}
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -16,7 +33,8 @@ export default function Navbar() {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobile, setIsMobile] = useState(false);
-
+  const [userData, setUserData] = useState<NavbarAccount | null>(null);
+  const [logoLoadFailed, setLogoLoadFailed] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -26,8 +44,30 @@ export default function Navbar() {
 
     checkMobile();
     window.addEventListener("resize", checkMobile);
+
+    const fetchAccountData = async () => {
+      try {
+        const res = await fetch("/api/getAccountData");
+        const data = await res.json();
+
+        const account = data.data?.[0];
+
+        if (data.success && account) {
+          setUserData(account);
+        }
+      } catch {
+        console.log("Failed to fetch user role");
+      }
+    };
+
+    fetchAccountData();
+
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  useEffect(() => {
+    setLogoLoadFailed(false);
+  }, [userData?.logo]);
 
   const closeAllMenus = () => {
     setMenuOpen(false);
@@ -69,6 +109,12 @@ export default function Navbar() {
     setMenuOpen(false);
     setAccountOpen(false);
   };
+  const accountTypeId = userData?.AccountTypeId;
+  const dashboardHref =
+    accountTypeId === 1 || accountTypeId === "1"
+      ? "/Corporate/dashboard"
+      : "/VCSE/dashboard";
+  const profileLogoSrc = resolveLogoImageSrc(userData?.logo);
 
   return (
     <div className="navbarShell">
@@ -105,11 +151,11 @@ export default function Navbar() {
               <p className="navDropdownTitle">Menu</p>
 
               <Link
-                href="/dashboard"
-                className="navDropdownLink"
-                onClick={closeAllMenus}
+                  href={dashboardHref}
+                  className="navDropdownLink"
+                  onClick={closeAllMenus}
               >
-                Dashboard
+                  Dashboard
               </Link>
               <Link
                 href="/myaccount"
@@ -126,7 +172,7 @@ export default function Navbar() {
                 Create Campaign
               </Link>
               <Link
-                href="/campaign"
+                href={dashboardHref}
                 className="navDropdownLink"
                 onClick={closeAllMenus}
               >
@@ -151,9 +197,9 @@ export default function Navbar() {
         </div>
 
         <div className="navbarTitleWrap">
-          <Link href="/" className="navbarTitle font-Heading">
+          <h1 className="navbarTitle font-Heading">
             SponsorMatch
-          </Link>
+          </h1>
         </div>
 
         <div className="navbarRight">
@@ -209,7 +255,16 @@ export default function Navbar() {
               onClick={handleAccountToggle}
               aria-label="Open account menu"
             >
-              <FontAwesomeIcon icon={faCircleUser} className="profileIcon" />
+              {profileLogoSrc && !logoLoadFailed ? (
+                <img
+                  src={profileLogoSrc}
+                  alt="Profile"
+                  className="profileIcon"
+                  onError={() => setLogoLoadFailed(true)}
+                />
+              ) : (
+                <FontAwesomeIcon icon={faCircleUser} className="profileIcon" />
+              )}
             </button>
 
             <div

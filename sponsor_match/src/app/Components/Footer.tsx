@@ -4,11 +4,11 @@ import Link from "next/link";
 
 export default function Footer() {
     return (
-        <div className="bg-Black w-full flex sticky bottom-0 left-0">
+        <div className="bg-Black w-full flex fixed bottom-0 left-0">
             <div className="group">
                 <img
                 src = "/logo2.png"
-                alt="Funding I"
+                alt="FundingI Logo"
                 width={175}
                 height="auto"
                 className="justify-start"

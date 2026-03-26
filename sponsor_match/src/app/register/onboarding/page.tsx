@@ -1,7 +1,7 @@
 import OnboardingWizard from './OnboardingWizard';
 import Header from '@/app/Components/Header';
 import Footer from "../../Components/Footer";
-import { getSession } from '@/auth';
+import { getSession } from '@/lib/server-session';
 
 export default async function OnboardingPage() {
     const session = await getSession();

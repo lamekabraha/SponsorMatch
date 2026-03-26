@@ -99,6 +99,8 @@
   font-size: 12px;
   font-weight: 700;
   color: rgba(11, 15, 25, 0.68);
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .nc-step-chip-index {
@@ -140,15 +142,22 @@
   letter-spacing: -0.2px;
 }
 
+.nc-subsection-title {
+  margin: 6px 0 0;
+  font-size: 16px;
+  font-weight: 900;
+  color: rgba(11, 15, 25, 0.88);
+}
+
 .nc-grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
 
-.nc-col-span-2 {
+/* .nc-col-span-2 {
   grid-column: 1 / -1;
-}
+} */
 
 .nc-form-stack {
   display: grid;
@@ -286,6 +295,175 @@
   font-size: 12px;
   font-weight: 800;
   color: #0b0f19;
+}
+
+.nc-package-stack {
+  display: grid;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.nc-package {
+  border: 1px solid var(--nc-border);
+  border-radius: 10px;
+  padding: 12px;
+  background: #fff;
+}
+
+.nc-package-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.nc-package-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nc-package-select {
+  border: 1px solid rgba(11, 15, 25, 0.2);
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: #fff;
+  font-weight: 700;
+}
+
+.nc-package-price {
+  width: 110px;
+  border: 1px solid rgba(11, 15, 25, 0.2);
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: #fff;
+  font-weight: 700;
+}
+
+.nc-package-list {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: rgba(11, 15, 25, 0.8);
+  font-size: 14px;
+}
+
+.nc-package-list li {
+  margin-bottom: 6px;
+}
+
+.nc-package-benefit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.nc-tutorial-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 15, 25, 0.62);
+  z-index: 999;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.nc-tutorial-modal {
+  width: 100%;
+  max-width: 980px;
+  background: #fff;
+  border: 2px solid rgba(11, 15, 25, 0.35);
+  border-radius: 16px;
+  box-shadow: 0 18px 50px rgba(11, 15, 25, 0.25);
+  overflow: hidden;
+}
+
+.nc-tutorial-modal-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(11, 15, 25, 0.16);
+  background: #fffdf5;
+}
+
+.nc-tutorial-modal-title {
+  margin: 0;
+  font-family: var(--font-Heading), Arial, sans-serif;
+  font-size: 20px;
+  font-weight: 950;
+  letter-spacing: -0.2px;
+}
+
+.nc-tutorial-modal-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid rgba(11, 15, 25, 0.16);
+  background: #fff;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.nc-tutorial-modal-close:active {
+  transform: translateY(1px);
+}
+
+.nc-tutorial-modal-content {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 14px;
+}
+
+.nc-tutorial-video-placeholder {
+  height: 280px;
+  border-radius: 14px;
+  border: 2px dashed rgba(11, 15, 25, 0.28);
+  background: #fffdf5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 14px;
+  font-weight: 800;
+  color: rgba(11, 15, 25, 0.65);
+}
+
+.nc-tutorial-transcript-box {
+  min-height: 170px;
+  border-radius: 14px;
+  border: 1px solid rgba(11, 15, 25, 0.16);
+  background: #fff;
+  padding: 12px;
+  color: rgba(11, 15, 25, 0.72);
+  font-weight: 700;
+}
+
+.nc-tutorial-transcript-title {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 950;
+}
+
+.nc-tutorial-modal-actions {
+  padding: 16px;
+  border-top: 1px solid rgba(11, 15, 25, 0.16);
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 900px) {
+  .nc-tutorial-modal-content {
+    grid-template-columns: 1fr;
+  }
+
+  .nc-tutorial-video-placeholder {
+    height: 240px;
+  }
 }
 
 .nc-preview-wrap {

@@ -169,7 +169,7 @@ export default function FavouritesPage() {
                   </div>
 
                   <div className="favActions">
-                    <Link href="/campaign" className="favBtn">
+                    <Link href={`/campaign?id=${c.id}`} className="favBtn">
                       Read More
                     </Link>
                   </div>
