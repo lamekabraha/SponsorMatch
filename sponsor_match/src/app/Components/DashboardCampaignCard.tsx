@@ -81,6 +81,8 @@ type DashboardCampaignCardProps = {
   goal: number;
   status: string;
   href?: string;
+  /** VCSE dashboard: link to `/editcampaign?id=…` */
+  editHref?: string;
   coverImageUrl?: string | null;
 };
 
@@ -99,6 +101,7 @@ export function DashboardCampaignCard({
   status,
   goal,
   href,
+  editHref,
   coverImageUrl,
 }: DashboardCampaignCardProps) {
   const needed = Math.max(0, goal - raised);
@@ -132,7 +135,7 @@ export function DashboardCampaignCard({
           <span className="font-[950] text-[#0b0f19]">Still Needed: {formatGBP(needed)}</span>
         </div>
 
-        <div className="mt-[8px]">
+        <div className="mt-[8px] flex flex-col gap-[8px]">
           {href ? (
             <Link href={href} className="w-full flex justify-center items-center rounded-[12px] font-extrabold no-underline p-[12px_0] border border-[#0b0f19] bg-[#0b0f19] text-white shadow-[0_10px_24px_rgba(11,15,25,0.18)] hover:bg-[#111827]">
               Read More
@@ -142,6 +145,14 @@ export function DashboardCampaignCard({
               Read More
             </button>
           )}
+          {editHref ? (
+            <Link
+              href={editHref}
+              className="w-full flex justify-center items-center rounded-[12px] font-extrabold no-underline p-[12px_0] border border-[rgba(11,15,25,0.22)] bg-white text-[#0b0f19] hover:bg-[rgba(11,15,25,0.04)]"
+            >
+              Edit campaign
+            </Link>
+          ) : null}
         </div>
       </div>
     </div>

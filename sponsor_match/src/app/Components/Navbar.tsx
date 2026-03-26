@@ -172,7 +172,7 @@ export default function Navbar() {
                 Create Campaign
               </Link>
               <Link
-                href="/campaign"
+                href={dashboardHref}
                 className="navDropdownLink"
                 onClick={closeAllMenus}
               >
@@ -197,9 +197,9 @@ export default function Navbar() {
         </div>
 
         <div className="navbarTitleWrap">
-          <Link href="/" className="navbarTitle font-Heading">
+          <h1 className="navbarTitle font-Heading">
             SponsorMatch
-          </Link>
+          </h1>
         </div>
 
         <div className="navbarRight">

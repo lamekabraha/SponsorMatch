@@ -293,7 +293,7 @@ export default function SearchPage() {
                         </div>
 
                         <Link
-                          href="/campaign"
+                          href={`/campaign?id=${c.id}`}
                           className="block rounded-xl bg-black py-3 text-center font-extrabold text-white hover:bg-[#111827]"
                         >
                           Read More
