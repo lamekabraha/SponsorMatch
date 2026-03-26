@@ -4,6 +4,7 @@ import path from "path";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth-config";
 import { resolveStoragePath } from "@/lib/storage";
+import { pool } from "@/lib/db";
 // This file defines the API route handler for file-related operations in a Next.js application.
 // It supports authenticated and authorized access to files stored on the server,
 // using user sessions (via next-auth) to ensure users only access their own storage tree.
@@ -16,6 +17,18 @@ type RouteParams = {
 async function getAccountId(): Promise<number | null> {
   const session = await getServerSession(authConfig);
   return (session?.user as { accountId?: number })?.accountId ?? null;
+}
+
+async function hasMutualFollowing(a: number, b: number): Promise<boolean> {
+  const [rows] = await pool.execute(
+    `SELECT COUNT(*) AS cnt
+     FROM sponsor_match.following
+     WHERE (AccountId = ? AND FollowId = ?)
+        OR (AccountId = ? AND FollowId = ?)`,
+    [a, b, b, a],
+  );
+  const cnt = Number((rows as { cnt?: unknown }[])[0]?.cnt ?? 0);
+  return cnt === 2;
 }
 
 function getMimeType(filePath: string): string {
@@ -53,13 +66,28 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
   const { path: pathSegments } = await params;
   const relativePath = pathSegments.join("/");
 
-  // Ensure users can only access their own account storage tree
-  const allowedPrefix = `accounts/${accountId}/`;
-  if (!relativePath.startsWith(allowedPrefix)) {
-    return NextResponse.json(
-      { success: false, error: "Forbidden" },
-      { status: 403 },
-    );
+  // Default: only access own account storage tree.
+  // For campaigns + assets, allow access to the other party if the viewer and
+  // target account have mutual following (active partnership).
+  const targetMatch = relativePath.match(/^accounts\/(\d+)\//i);
+  const targetAccountId = targetMatch ? Number(targetMatch[1]) : null;
+
+  const isOwnAccount = targetAccountId != null && targetAccountId === accountId;
+  if (!isOwnAccount) {
+    if (targetAccountId == null) {
+      return NextResponse.json(
+        { success: false, error: "Forbidden" },
+        { status: 403 },
+      );
+    }
+
+    const ok = await hasMutualFollowing(accountId, targetAccountId);
+    if (!ok) {
+      return NextResponse.json(
+        { success: false, error: "Forbidden" },
+        { status: 403 },
+      );
+    }
   }
 
   let absolutePath: string;

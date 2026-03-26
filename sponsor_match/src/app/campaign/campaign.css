@@ -303,9 +303,9 @@
     background: rgb(255, 224, 111);
   }
   .Edit-btn {
-    position: absolute;
+    /* position: absolute;
     top: 16px;
-    right: 16px;
+    right: 16px; */
     background: rgba(255, 207, 34, 0.995);
     color: #000000;
     padding: 8px 14px;

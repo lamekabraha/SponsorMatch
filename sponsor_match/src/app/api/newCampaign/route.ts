@@ -259,7 +259,7 @@ export async function POST(req: Request) {
           summary: body.summary ?? "",
           coverImageUrl: finalCoverPath ?? "",
           additionalImageUrls: finalAdditionalImagePaths,
-          websiteUrl: body.websiteUrl ?? "",
+          websiteUrl: body.websiteUrl,
           instagramUrl: body.instagramUrl ?? "",
           twitterUrl: body.twitterUrl ?? "",
           facebookUrl: body.facebookUrl ?? "",

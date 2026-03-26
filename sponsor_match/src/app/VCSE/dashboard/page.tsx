@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import { DashboardDataCard } from "../../Components/DashboardDataCard";
 import { DashboardCampaignCard } from "@/app/Components/DashboardCampaignCard";
 import DashboardSkeleton from "../../Components/dashboardSkeletonQuickData";
 import CampaignCardSkeleton from "../../Components/dashboardSkeletonCampaignCards";
-
 interface DashboardData {
   totalRaised: number;
   activeCampaign: number;
@@ -48,6 +48,8 @@ function LoadingCampaignCards() {
 }
 
 export default function DashboardPage() {
+  const { data: session } = useSession();
+  const displayName = session?.user?.name?.trim() ?? "";
 
   const [favs, setFavs] = useState<string[]>([]);
 
@@ -63,7 +65,7 @@ export default function DashboardPage() {
   useEffect(() => {
   const fetchDashboardData = async () => {
     try{
-      const response = await fetch('/api/dashboard');
+      const response = await fetch('/api/vcseDashboard');
 
       if (!response.ok) {
         throw new Error('Failed to load dashboard data');
@@ -144,7 +146,9 @@ export default function DashboardPage() {
         <main className="max-w-[1200px] mx-auto mt-[18px] mb-[60px] px-4">
           
           <section className="mt-[18px] flex items-center justify-between gap-[12px] max-sm:flex-col max-sm:items-stretch">
-            <h1 className="m-0 text-[28px] font-[950] tracking-[-0.4px] text-[#0b0f19]">Welcome Back</h1>
+            <h1 className="m-0 text-[28px] font-[950] tracking-[-0.4px] text-[#0b0f19]">
+              Welcome Back{displayName ? `, ${displayName}` : ""}
+            </h1>
             <div className="flex gap-2">
               <Link href="/newcampaign">
                 <button className="border border-[rgba(11,15,25,0.2)] bg-[#fed857] hover:bg-[#ffe27a] rounded-[12px] py-[10px] px-[12px] cursor-pointer font-extrabold text-[#0b0f19] transition-all duration-[120ms] ease-in-out active:translate-y-[1px]">
@@ -259,6 +263,8 @@ export default function DashboardPage() {
                   raised={campaign.Raised}
                   goal={Number(campaign.GoalAmount ?? 0)}
                   status={campaign.Status}
+                  href={`/campaign?id=${campaign.CampaignId}`}
+                  editHref={`/editcampaign?id=${campaign.CampaignId}`}
                   coverImageUrl={
                     campaign.CoverImage
                       ? `/api/files/${campaign.CoverImage}`
