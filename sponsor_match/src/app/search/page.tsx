@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
+import CampaignCardSkeleton from "../Components/dashboardSkeletonCampaignCards";
+import { DashboardCampaignCard } from "../Components/DashboardCampaignCard";
 
 type Campaign = {
   id: string;
@@ -17,50 +19,12 @@ type Campaign = {
   imageUrl: string;
 };
 
-const campaigns: Campaign[] = [
-  {
-    id: "1",
-    title: "Basketball Community",
-    org: "Sports For All",
-    category: "Sports",
-    deadline: "11/03/2026",
-    raised: 2000,
-    goal: 5000,
-    imageUrl: "/campaigns/basketball.jpg",
-  },
-  {
-    id: "2",
-    title: "Coding Team",
-    org: "Tech Made Easy",
-    category: "Education",
-    deadline: "11/14/2026",
-    raised: 4500,
-    goal: 10000,
-    imageUrl: "/campaigns/coding.jpg",
-  },
-  {
-    id: "3",
-    title: "Homeless Support",
-    org: "Shelter Plus",
-    category: "Poverty Relief",
-    deadline: "11/03/2026",
-    raised: 2000,
-    goal: 5000,
-    imageUrl: "/campaigns/homeless.jpg",
-  },
-];
-
 function formatGBP(n: number) {
   return new Intl.NumberFormat("en-GB", {
     style: "currency",
     currency: "GBP",
     maximumFractionDigits: 0,
   }).format(n);
-}
-
-function pct(raised: number, goal: number) {
-  if (goal <= 0) return 0;
-  return Math.min(100, Math.round((raised / goal) * 100));
 }
 
 export default function SearchPage() {
@@ -70,6 +34,11 @@ export default function SearchPage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [maxBudget, setMaxBudget] = useState<number>(20000);
   const [distance, setDistance] = useState("any");
+
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [layoutKey, setLayoutKey] = useState(0);
 
@@ -81,9 +50,50 @@ export default function SearchPage() {
     return () => cancelAnimationFrame(raf);
   }, [searchParams]);
 
-  const categories = useMemo(() => {
-    return Array.from(new Set(campaigns.map((c) => c.category))).sort();
-  }, []);
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const params = new URLSearchParams();
+        const trimmed = query.trim();
+        if (trimmed) params.set("q", trimmed);
+        if (selectedCategories.length > 0)
+          params.set("categories", selectedCategories.join(","));
+        params.set("maxBudget", String(maxBudget));
+        params.set("distance", String(distance));
+
+        const res = await fetch(`/api/search?${params.toString()}`);
+        const json = await res.json();
+
+        if (!cancelled && res.ok && json?.success) {
+          setCampaigns(json.data?.campaigns ?? []);
+          setCategories(json.data?.categories ?? []);
+          setLayoutKey((k) => k + 1);
+        }
+
+        if (!cancelled && (!res.ok || !json?.success)) {
+          setCampaigns([]);
+          setCategories([]);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : "Failed to search");
+          setCampaigns([]);
+          setCategories([]);
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [query, selectedCategories, maxBudget, distance]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -103,7 +113,7 @@ export default function SearchPage() {
 
       return matchesQuery && matchesCategory && matchesBudget;
     });
-  }, [query, selectedCategories, maxBudget]);
+  }, [campaigns, query, selectedCategories, maxBudget]);
 
   function toggleCategory(cat: string) {
     setSelectedCategories((prev) =>
@@ -228,78 +238,41 @@ export default function SearchPage() {
               </div>
             </div>
 
-            {filtered.length === 0 ? (
+            {isLoading ? (
+              <div className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 4xl:grid-cols-3">
+                <CampaignCardSkeleton />
+                <CampaignCardSkeleton />
+                <CampaignCardSkeleton />
+              </div>
+            ) : filtered.length === 0 ? (
               <div className="mt-4 rounded-2xl border border-black/10 bg-white p-6 shadow">
                 No campaigns match your search or filters.
               </div>
             ) : (
               <div
                 key={layoutKey}
-                className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3"
+                className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 4xl:grid-cols-3"
               >
                 {filtered.map((c) => {
-                  const progress = pct(c.raised, c.goal);
-                  const needed = Math.max(0, c.goal - c.raised);
-
                   return (
-                    <article
+                    <div
                       key={c.id}
-                      className="overflow-hidden rounded-2xl border border-black/10 bg-white shadow transition hover:-translate-y-1"
+                      className="transition hover:-translate-y-1"
                     >
-                      <div className="relative h-44">
-                        <img
-                          src={c.imageUrl}
-                          alt={c.title}
-                          className="h-full w-full object-cover"
-                        />
-                        <span className="absolute bottom-3 right-3 rounded-full bg-black px-3 py-1 text-xs font-bold text-white">
-                          Goal: {formatGBP(c.goal)}
-                        </span>
-                      </div>
-
-                      <div className="space-y-3 p-4">
-                        <div className="flex justify-between text-xs font-bold text-black/60">
-                          <span className="rounded-full bg-[#fed857]/40 px-3 py-1">
-                            {c.category}
-                          </span>
-                          <span>Deadline: {c.deadline}</span>
-                        </div>
-
-                        <div>
-                          <h3 className="text-lg font-extrabold">{c.title}</h3>
-                          <div className="text-sm font-semibold text-black/60">
-                            {c.org}
-                          </div>
-                        </div>
-
-                        <div>
-                          <div className="flex justify-between text-xs font-bold">
-                            <span>{formatGBP(c.raised)}</span>
-                            <span>{progress}%</span>
-                          </div>
-                          <div className="mt-1 h-2 rounded-full bg-black/10">
-                            <div
-                              className="h-2 rounded-full bg-black"
-                              style={{ width: `${progress}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="text-sm font-semibold">
-                          Goal: {formatGBP(c.goal)}
-                          <div className="font-extrabold">
-                            Still Needed: {formatGBP(needed)}
-                          </div>
-                        </div>
-
-                        <Link
-                          href={`/campaign?id=${c.id}`}
-                          className="block rounded-xl bg-black py-3 text-center font-extrabold text-white hover:bg-[#111827]"
-                        >
-                          Read More
-                        </Link>
-                      </div>
-                    </article>
+                      <DashboardCampaignCard
+                        title={c.title}
+                        category={c.category}
+                        raised={c.raised}
+                        goal={c.goal}
+                        status="open"
+                        coverImageUrl={
+                          c.imageUrl
+                            ? `/api/files/${c.imageUrl}`
+                            : `/loadingImage.jpg`
+                        }
+                        href={`/campaign?id=${c.id}`}
+                      />
+                    </div>
                   );
                 })}
               </div>

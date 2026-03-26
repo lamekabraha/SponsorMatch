@@ -5,6 +5,7 @@ import { authConfig } from "@/lib/auth-config";
 
 async function getAccountId(): Promise<number | null> {
   const session = await getServerSession(authConfig);
+  console.log("userId", session?.user?.id);
   return (session?.user as { accountId?: number })?.accountId ?? null;
 }
 
@@ -152,6 +153,7 @@ export type CorporateDashboardData = {
   activePartnerships: number;
   connections: number;
   impactScore: number;
+  campaignTypes: { CampaignTypeId: number; Type: string }[];
   campaigns: CorporateDashboardCampaignRow[];
 };
 
@@ -171,11 +173,22 @@ export async function loadCorporateDashboardData(
     activePartnerships,
     connections,
   );
+  const campaignTypes = Array.from(
+    new Set(
+      campaigns
+        .map((c) => String(c.Type ?? "").trim())
+        .filter((t) => t.length > 0),
+    ),
+  ).map((type, idx) => ({
+    CampaignTypeId: idx + 1,
+    Type: type,
+  }));
   return {
     totalInvested,
     activePartnerships,
     connections,
     impactScore,
+    campaignTypes,
     campaigns,
   };
 }

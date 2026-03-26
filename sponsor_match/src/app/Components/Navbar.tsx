@@ -20,11 +20,24 @@ type NavbarAccount = {
 function resolveLogoImageSrc(stored: string | null | undefined): string | null {
   if (stored == null || String(stored).trim() === "") return null;
   const raw = String(stored).trim();
+
+  // Prefer normalized storage-relative value whenever possible.
+  const relative = toStorageRelativePath(raw);
+  if (relative) return `/api/files/${relative}`;
+
+  // Legacy values may have `/api/storage/...`; map them to `/api/files/...`.
+  const storageApiMatch = raw.match(/\/api\/storage\/(.+)$/i);
+  if (storageApiMatch?.[1]) {
+    const rel = toStorageRelativePath(storageApiMatch[1]);
+    if (rel) return `/api/files/${rel}`;
+  }
+
+  // If it's already a usable absolute URL, keep it.
   if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
   if (raw.startsWith("/api/files/")) return raw;
   if (raw.startsWith("/")) return raw;
-  const relative = toStorageRelativePath(raw);
-  return relative ? `/api/files/${relative}` : null;
+
+  return null;
 }
 
 export default function Navbar() {
@@ -36,6 +49,7 @@ export default function Navbar() {
   const [userData, setUserData] = useState<NavbarAccount | null>(null);
   const [logoLoadFailed, setLogoLoadFailed] = useState(false);
   const router = useRouter();
+
 
   useEffect(() => {
     const checkMobile = () => {

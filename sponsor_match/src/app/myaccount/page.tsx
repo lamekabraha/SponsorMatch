@@ -1,433 +1,623 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
 import "./myaccount.css";
+import { toStorageRelativePath } from "@/lib/storagePaths";
+
+type MyAccountProfileResponse = {
+  account: {
+    AccountId: number;
+    Name: string;
+    AccountTypeId: number;
+    IndustrySector: string | null;
+    CompanySize: string | null;
+    ContactName: string | null;
+    ContactEmail: string | null;
+    ContactPhone: string | null;
+    Website: string | null;
+    Instagram: string | null;
+    Twitter: string | null;
+    Facebook: string | null;
+    LinkedIn: string | null;
+    CompanyLogo: string | null;
+    CompanyCover: string | null;
+    Address: string | null;
+    Description: string | null;
+  };
+  business: {
+    IndustryType: string | null;
+    PartnershipPref: string | null;
+    AnnualBudget: number | null;
+  } | null;
+  vcse: {
+    VcseType: string | null;
+    VerificationDoc: string | null;
+  } | null;
+};
+
+type MyAccountRouteResponse = {
+  success: boolean;
+  data?: {
+    profile?: Record<string, unknown>[];
+    business?: Record<string, unknown>[];
+  };
+  error?: string;
+};
+
+type TabKey = "profile" | "branding" | "security";
+
+type ProfileFormState = {
+  name: string;
+  description: string;
+  email: string;
+  phone: string;
+  website: string;
+  instagram: string;
+  twitter: string;
+  facebook: string;
+  linkedIn: string;
+  businessSector: string;
+  vcseType: string;
+};
+
+function resolveFileSrc(stored: string | null | undefined): string | null {
+  if (!stored) return null;
+  const raw = String(stored).trim();
+  if (!raw) return null;
+
+  // Works for both relative values like `accounts/...` and absolute URLs
+  // like `http://.../api/storage/accounts/...`.
+  const rel = toStorageRelativePath(raw);
+  if (rel) return `/api/files/${rel}`;
+  if (raw.startsWith("/api/files/")) return raw;
+  return raw.startsWith("/") ? raw : null;
+}
+
+function toEmptyString(value: string | null | undefined): string {
+  return value == null ? "" : String(value);
+}
+
+function toNullable(value: unknown): string | null {
+  if (value == null) return null;
+  const str = String(value).trim();
+  return str.length > 0 ? str : null;
+}
+
+function toNumber(value: unknown, fallback = 0): number {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function normalizeMyAccountData(payload: MyAccountRouteResponse): MyAccountProfileResponse {
+  const profileRow = (payload.data?.profile?.[0] ?? {}) as Record<string, unknown>;
+  const businessRow = (payload.data?.business?.[0] ?? {}) as Record<string, unknown>;
+
+  return {
+    account: {
+      AccountId: toNumber(profileRow.AccountId),
+      Name: String(profileRow.Name ?? profileRow.ContactName ?? ""),
+      AccountTypeId: toNumber(profileRow.AccountTypeId),
+      IndustrySector: toNullable(profileRow.IndustrySector),
+      CompanySize: toNullable(profileRow.CompanySize),
+      ContactName: toNullable(profileRow.ContactName),
+      ContactEmail: toNullable(profileRow.ContactEmail),
+      ContactPhone: toNullable(profileRow.ContactPhone),
+      Website: toNullable(businessRow.Website),
+      Instagram: toNullable(businessRow.Instagram),
+      Twitter: toNullable(businessRow.Twitter),
+      Facebook: toNullable(businessRow.Facebook),
+      LinkedIn: toNullable(businessRow.LinkedIn),
+      CompanyLogo: toNullable(businessRow.CompanyLogo),
+      CompanyCover: toNullable(businessRow.CompanyCover),
+      Address: toNullable(profileRow.Address),
+      Description: toNullable(businessRow.Description),
+    },
+    business: null,
+    vcse: null,
+  };
+}
 
 export default function MyAccountPage() {
-  const [form, setForm] = useState({
-    firstName: "Bob",
-    lastName: "Smith",
-    username: "bob123",
-    phone: "+44 7123 456789",
-    email: "bob23@example.com",
-    bio: "Content creator focused on gaming, lifestyle and brand partnerships.",
-
-    // onboarding / business preferences
-    companyAddress: "123 Oxford Street, London",
-    industry: "technology",
-    companySize: "11-50",
-    website: "https://bobmedia.co.uk",
-    
-  });
-  const [form1, setForm1] = useState({
+  const [activeTab, setActiveTab] = useState<TabKey>("profile");
+  const [profile, setProfile] = useState<MyAccountProfileResponse | null>(null);
+  const [form, setForm] = useState<ProfileFormState>({
+    name: "",
+    description: "",
+    email: "",
+    phone: "",
+    website: "",
     instagram: "",
-    twitter:"",
-    tiktok:"",
-    facebook:"",
-  })
+    twitter: "",
+    facebook: "",
+    linkedIn: "",
+    businessSector: "",
+    vcseType: "",
+  });
+  const [logoPreviewSrc, setLogoPreviewSrc] = useState<string | null>(null);
 
-  const [savedMessage, setSavedMessage] = useState("");
-  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [savedMessage, setSavedMessage] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-  const handleChange1 = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setForm1({...form1,[e.target.name]:e.target.value})
-  }
+  const accountTypeId = profile?.account.AccountTypeId ?? null;
+  const isBusiness = accountTypeId === 1;
+  const isVcse = accountTypeId === 2;
 
-  const handleSave = async (e: React.FormEvent) => {
+  const resolvedVerification = useMemo(() => {
+    if (!profile?.vcse) return false;
+    return Boolean(profile.vcse.VerificationDoc);
+  }, [profile?.vcse]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        setLoading(true);
+        setErrorMessage("");
+
+        // Required by directive: fetch basic account info from getAccountData.
+        await fetch("/api/getAccountData").catch(() => null);
+
+        const profileRes = await fetch("/api/myaccount");
+        const profileJson = await profileRes.json();
+        if (!profileRes.ok || !profileJson?.success) {
+          throw new Error(profileJson?.error || "Failed to load profile");
+        }
+
+        if (cancelled) return;
+
+        const nextProfile = normalizeMyAccountData(profileJson as MyAccountRouteResponse);
+        setProfile(nextProfile);
+
+        setForm({
+          name: toEmptyString(nextProfile.account.Name),
+          description: toEmptyString(nextProfile.account.Description),
+          email: toEmptyString(nextProfile.account.ContactEmail),
+          phone: toEmptyString(nextProfile.account.ContactPhone),
+          website: toEmptyString(nextProfile.account.Website),
+          instagram: toEmptyString(nextProfile.account.Instagram),
+          twitter: toEmptyString(nextProfile.account.Twitter),
+          facebook: toEmptyString(nextProfile.account.Facebook),
+          linkedIn: toEmptyString(nextProfile.account.LinkedIn),
+          businessSector: toEmptyString(nextProfile.business?.IndustryType),
+          vcseType: toEmptyString(nextProfile.vcse?.VcseType),
+        });
+
+        setLogoPreviewSrc(resolveFileSrc(nextProfile.account.CompanyLogo));
+      } catch (e) {
+        if (cancelled) return;
+        setErrorMessage(e instanceof Error ? e.message : "Failed to load account profile");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
+    if (!profile) return;
+
+    setSaving(true);
+    setErrorMessage("");
+    setSavedMessage("");
 
     try {
-      // personal info save
-      // onboarding preferences save
-      // connect these to your real backend routes when ready
+      const payload: any = {
+        name: form.name,
+        description: form.description,
+        email: form.email,
+        phone: form.phone,
+        website: form.website,
+        instagram: form.instagram,
+        twitter: form.twitter,
+        facebook: form.facebook,
+        linkedIn: form.linkedIn,
+      };
 
-      // Example:
-      // await fetch("/api/account/update", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify(form),
-      // });
+      const res = await fetch("/api/myaccount", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-      setSavedMessage("Your account details and onboarding preferences have been updated.");
-      setTimeout(() => setSavedMessage(""), 3000);
-    } catch (error) {
-      console.error(error);
-      alert("Failed to save changes.");
+      const json = await res.json();
+      if (!res.ok || !json?.success) {
+        throw new Error(json?.error || "Failed to save changes");
+      }
+
+      const refreshed = await fetch("/api/myaccount");
+      const refreshedJson = await refreshed.json();
+      if (refreshed.ok && refreshedJson?.success) {
+        const nextProfile = normalizeMyAccountData(refreshedJson as MyAccountRouteResponse);
+        setProfile(nextProfile);
+        setLogoPreviewSrc(resolveFileSrc(nextProfile.account.CompanyLogo));
+      }
+
+      setSavedMessage("Saved successfully.");
+      setTimeout(() => setSavedMessage(""), 2500);
+    } catch (e) {
+      setErrorMessage(e instanceof Error ? e.message : "Failed to save changes.");
+    } finally {
+      setSaving(false);
     }
-  };
+  }
 
-  const handleDeleteAccount = () => {
-    alert("delete account logic goes here");
-  };
+  async function handleLogoUpload(file: File | null) {
+    if (!file || !profile) return;
+
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      setErrorMessage("Logo must be a JPG/PNG/WebP image.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMessage("Logo must be 5MB or less.");
+      return;
+    }
+
+    setUploadingLogo(true);
+    setErrorMessage("");
+
+    try {
+      const fd = new FormData();
+      // Existing branding route expects `logo` form field.
+      fd.append("logo", file);
+
+      const res = await fetch("/api/auth/register/onboarding/vcse/branding", {
+        method: "POST",
+        body: fd,
+      });
+      const json = await res.json();
+      if (!res.ok || !json?.success) {
+        throw new Error(json?.error || "Failed to upload logo");
+      }
+
+      const nextLogo = json?.logoUrl ?? null;
+      setLogoPreviewSrc(resolveFileSrc(nextLogo));
+      setProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              account: {
+                ...prev.account,
+                CompanyLogo: nextLogo,
+              },
+            }
+          : prev,
+      );
+      setSavedMessage("Logo updated.");
+      setTimeout(() => setSavedMessage(""), 2500);
+    } catch (e) {
+      setErrorMessage(e instanceof Error ? e.message : "Failed to upload logo");
+    } finally {
+      setUploadingLogo(false);
+    }
+  }
+
+  const tabButton = (tab: TabKey, label: string) => (
+    <button
+      type="button"
+      className={`ma-tabButton ${activeTab === tab ? "is-active" : ""}`}
+      onClick={() => setActiveTab(tab)}
+    >
+      <span className="ma-tabLabel">{label}</span>
+      {activeTab === tab ? <span className="ma-tabActiveDot" /> : null}
+    </button>
+  );
 
   return (
     <>
       <Navbar />
 
-      <div className="accountPage">
-        <div className="accountContainer">
-          <div className="accountBanner">
-            <div className="accountBannerLeft">
-              <span className="accountBannerLabel">Account Settings</span>
-              <span className="accountBannerValue">
-                Manage your personal details, email, and onboarding preferences.
-              </span>
-            </div>
-          </div>
-
-          <div className="accountTitleRow">
+      <div className="page-container">
+        <div className="ma-page">
+          <div className="ma-header">
             <div>
-              <h1 className="accountTitle">My Account</h1>
-              <p className="accountSubtitle">
-                Keep your profile information and business preferences up to date for better matches.
+              <h1 className="ma-title">My Account</h1>
+              <p className="ma-subtitle">
+                Keep your details up to date for better matches and sponsor visibility.
               </p>
             </div>
+            <div className="ma-headerBadge">
+              {isBusiness ? "Business" : isVcse ? "VCSE" : "Account"}
+            </div>
           </div>
 
-          <div className="accountGrid">
-            <section className="accountCard">
-              <div className="sectionHeader">
-                <h2>Personal Information</h2>
-                <p>Edit your contact details and public information.</p>
-              </div>
+          <div className="ma-tabs">
+            {tabButton("profile", "Profile Info")}
+            {tabButton("branding", "Identity & Branding")}
+            {tabButton("security", "Security")}
+          </div>
 
-              <form onSubmit={handleSave} className="accountForm">
-                <div className="formGrid">
-                  <div className="formGroup">
-                    <label htmlFor="firstName">First Name</label>
-                    <input
-                      id="firstName"
-                      name="firstName"
-                      type="text"
-                      value={form.firstName}
-                      onChange={handleChange}
-                      className="accountInput"
-                    />
-                  </div>
+          {loading ? (
+            <div className="ma-panel" style={{ marginTop: 16 }}>
+              Loading…
+            </div>
+          ) : (
+            <>
+              {errorMessage ? <div className="ma-error">{errorMessage}</div> : null}
+              {savedMessage ? <div className="ma-success">{savedMessage}</div> : null}
 
-                  <div className="formGroup">
-                    <label htmlFor="lastName">Last Name</label>
-                    <input
-                      id="lastName"
-                      name="lastName"
-                      type="text"
-                      value={form.lastName}
-                      onChange={handleChange}
-                      className="accountInput"
-                    />
-                  </div>
+              {activeTab === "profile" ? (
+                <div className="ma-panel" style={{ marginTop: 16 }}>
+                  <h2 className="ma-panelTitle">Profile Info</h2>
+                  <form onSubmit={handleSaveProfile} className="ma-form">
+                    <div className="ma-formGrid">
+                      <div className="ma-field">
+                        <label className="ma-label">Name</label>
+                        <input
+                          className="ma-input"
+                          value={form.name}
+                          onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                        />
+                      </div>
 
-                  <div className="formGroup">
-                    <label htmlFor="username">Username</label>
-                    <input
-                      id="username"
-                      name="username"
-                      type="text"
-                      value={form.username}
-                      onChange={handleChange}
-                      className="accountInput"
-                    />
-                  </div>
+                      <div className="ma-field">
+                        <label className="ma-label">Email</label>
+                        <input
+                          className="ma-input"
+                          type="email"
+                          value={form.email}
+                          onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+                        />
+                      </div>
 
-                  <div className="formGroup">
-                    <label htmlFor="phone">Phone Number</label>
-                    <input
-                      id="phone"
-                      name="phone"
-                      type="text"
-                      value={form.phone}
-                      onChange={handleChange}
-                      className="accountInput"
-                    />
-                  </div>
+                      <div className="ma-field">
+                        <label className="ma-label">Phone</label>
+                        <input
+                          className="ma-input"
+                          type="tel"
+                          value={form.phone}
+                          onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+                        />
+                      </div>
+
+                    </div>
+
+                    <div className="ma-actions">
+                      <button type="submit" className="ma-btn ma-btn-primary" disabled={saving}>
+                        {saving ? "Saving…" : "Save Changes"}
+                      </button>
+                    </div>
+                  </form>
                 </div>
+              ) : null}
 
-                <div className="formGroup">
-                  <label htmlFor="bio">Bio</label>
-                  <textarea
-                    id="bio"
-                    name="bio"
-                    rows={5}
-                    value={form.bio}
-                    onChange={handleChange}
-                    className="accountTextarea"
-                  />
-                </div>
+              {activeTab === "branding" ? (
+                <div className="ma-panel" style={{ marginTop: 16 }}>
+                  <h2 className="ma-panelTitle">Identity & Branding</h2>
 
-                <div className="sectionDivider" />
+                  <div className="ma-brandingGrid">
+                    <div className="ma-logoPreview">
+                      <div className="ma-avatarWrap">
+                        {logoPreviewSrc ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={logoPreviewSrc}
+                            alt="Profile logo"
+                            className="ma-avatarImg"
+                          />
+                        ) : (
+                          <div className="ma-avatarFallback">Logo</div>
+                        )}
+                      </div>
+                      <p className="ma-helpText">Upload a clear square logo for better recognition.</p>
+                    </div>
 
-                <div className="sectionHeader smallHeader">
-                  <h2>Email Address</h2>
-                  <p>Update the email linked to your SponsorMatch account.</p>
-                </div>
+                    <div className="ma-uploadCard">
+                      <label className="ma-label">Profile Logo</label>
+                      <input
+                        className="ma-fileInput"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={(e) => handleLogoUpload(e.target.files?.[0] ?? null)}
+                        disabled={uploadingLogo}
+                      />
 
-                <div className="formGroup">
-                  <label htmlFor="email">Email</label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    className="accountInput"
-                  />
-                </div>
-
-                <div className="sectionDivider" />
-
-                <div className="sectionHeader smallHeader">
-                  <h2>Onboarding Preferences</h2>
-                  <p>Update the business details you originally added during onboarding.</p>
-                </div>
-
-                <div className="formGroup">
-                  <label htmlFor="companyAddress">Company Address</label>
-                  <input
-                    id="companyAddress"
-                    name="companyAddress"
-                    type="text"
-                    value={form.companyAddress}
-                    onChange={handleChange}
-                    className="accountInput"
-                    placeholder="Enter your company address"
-                  />
-                </div>
-
-                <div className="formGrid">
-                  <div className="formGroup">
-                    <label htmlFor="industry">Industry</label>
-                    <select
-                      id="industry"
-                      name="industry"
-                      value={form.industry}
-                      onChange={handleChange}
-                      className="accountSelect"
-                    >
-                      <option value="">Select industry</option>
-                      <option value="agriculture">Agriculture</option>
-                      <option value="construction">Construction</option>
-                      <option value="education">Education</option>
-                      <option value="finance">Finance</option>
-                      <option value="health">Health</option>
-                      <option value="technology">Technology</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-
-                  <div className="formGroup">
-                    <label htmlFor="companySize">Company Size</label>
-                    <select
-                      id="companySize"
-                      name="companySize"
-                      value={form.companySize}
-                      onChange={handleChange}
-                      className="accountSelect"
-                    >
-                      <option value="">Select company size</option>
-                      <option value="1-10">1-10</option>
-                      <option value="11-50">11-50</option>
-                      <option value="51-100">51-100</option>
-                      <option value="101-500">101-500</option>
-                      <option value="501-1000">501-1000</option>
-                      <option value="1001-5000">1001-5000</option>
-                      <option value="5001-10000">5001-10000</option>
-                      <option value="10001-50000">10001-50000</option>
-                      <option value="50001-100000">50001-100000</option>
-                      <option value="100001-500000">100001-500000</option>
-                      <option value="500001-1000000">500001-1000000</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="formGroup">
-                  <label htmlFor="website">Website</label>
-                  <input
-                    id="website"
-                    name="website"
-                    type="text"
-                    value={form.website}
-                    onChange={handleChange}
-                    className="accountInput"
-                    placeholder="Enter your company website"
-                  />
-                </div>
-
-                {savedMessage && (
-                  <div className="successMessage">{savedMessage}</div>
-                )}
-
-                <div className="actionRow">
-                  <button type="submit" className="btn btnPrimary">
-                    Save Changes
-                  </button>
-                </div>
-              </form>
-            </section>
-
-            <aside className="accountSide">
-              <div className="accountCard">
-                <div className="sectionHeader">
-                  <h2>Account Overview</h2>
-                  <p>Your current account details at a glance.</p>
-                </div>
-
-                <div className="overviewList">
-                  <div className="overviewItem">
-                    <span className="overviewLabel">Full Name</span>
-                    <span className="overviewValue">
-                      {form.firstName} {form.lastName}
-                    </span>
-                  </div>
-
-                  <div className="overviewItem">
-                    <span className="overviewLabel">Username</span>
-                    <span className="overviewValue">@{form.username}</span>
-                  </div>
-
-                  <div className="overviewItem">
-                    <span className="overviewLabel">Email</span>
-                    <span className="overviewValue">{form.email}</span>
-                  </div>
-
-                  <div className="overviewItem">
-                    <span className="overviewLabel">Phone</span>
-                    <span className="overviewValue">{form.phone}</span>
-                  </div>
-
-                  <div className="overviewItem">
-                    <span className="overviewLabel">Industry</span>
-                    <span className="overviewValue">{form.industry || "Not set"}</span>
-                  </div>
-
-                  <div className="overviewItem">
-                    <span className="overviewLabel">Company Size</span>
-                    <span className="overviewValue">{form.companySize || "Not set"}</span>
-                  </div>
-
-                  <div className="overviewItem">
-                    <span className="overviewLabel">Website</span>
-                    <span className="overviewValue">{form.website || "Not set"}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="accountCard">
-                <div className="sectionHeader">
-                  <h2>Social media</h2>
-                  <p>add your social media links</p>
-                </div>
-                <div className="formGroup">
-                  <label htmlFor="instagram">Link to Instagram page</label>
-                  <input
-                    id = "instagram"
-                    name = "instagram"
-                    type="text"
-                    value={form1.instagram}
-                    onChange={handleChange1}
-                    className="accountInput"
-                    placeholder="Enter your Instagram link here"
-                    />
-                    <label htmlFor="twitter">Link to Twitter page</label>
-                  <input
-                    id = "twitter"
-                    name = "twitter"
-                    type="text"
-                    value={form1.twitter}
-                    onChange={handleChange1}
-                    className="accountInput"
-                    placeholder="Enter your Twitter link here"
-                    />
-                    <label htmlFor="tiktok">Link to Tiktok page</label>
-                  <input
-                    id = "tiktok"
-                    name = "tiktok"
-                    type="text"
-                    value={form1.tiktok}
-                    onChange={handleChange1}
-                    className="accountInput"
-                    placeholder="Enter your Tiktok link here"
-                    />
-                    <label htmlFor="facebook">Link to Facebook Page</label>
-                  <input
-                    id = "facebook"
-                    name = "facebook"
-                    type="text"
-                    value={form1.facebook}
-                    onChange={handleChange1}
-                    className="accountInput"
-                    placeholder="Enter your Facebook link here"
-                    />
-                    {savedMessage && (
-                  <div className="successMessage">{savedMessage}</div>
-                )}
-
-                <div className="actionRow">
-                  <button type="submit" className="btn btnPrimary">
-                    Save Changes
-                  </button>
-                </div>
-                </div>
-              </div>
-
-              <div className="accountCard dangerCard">
-                <div className="sectionHeader">
-                  <h2>Delete your account</h2>
-                  <p>Permanently remove your SponsorMatch account.</p>
-                </div>
-
-                <div className="dangerBox">
-                  <p>
-                    Deleting your profile will permanently remove all of your
-                    data such as your email address, onboarding preferences, and
-                    account details. This action can't be undone.
-                  </p>
-
-                  {!deleteConfirm ? (
-                    <button
-                      type="button"
-                      className="btn btnDanger"
-                      onClick={() => setDeleteConfirm(true)}
-                    >
-                      Delete Account
-                    </button>
-                  ) : (
-                    <div className="deleteConfirmBox">
-                      <p className="deleteWarning">
-                        Are you sure you want to delete your account?
+                      <p className="ma-helpText" style={{ marginTop: 10 }}>
+                        Uploads immediately using your account’s storage system.
                       </p>
-                      <div className="deleteActions">
+
+                      <div className="ma-actions">
                         <button
                           type="button"
-                          className="btn btnDanger"
-                          onClick={handleDeleteAccount}
+                          className="ma-btn"
+                          onClick={() => {
+                            // Intentionally empty: the upload is triggered by selecting a file.
+                          }}
+                          disabled
+                          style={{ opacity: 0.6 }}
                         >
-                          Yes, Delete
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btnGhost"
-                          onClick={() => setDeleteConfirm(false)}
-                        >
-                          Cancel
+                          Upload via file picker
                         </button>
                       </div>
                     </div>
-                  )}
+                  </div>
+
+                  <form onSubmit={handleSaveProfile} className="ma-form">
+                    <div className="ma-formGrid">
+                      <div className="ma-field">
+                        <label className="ma-label">Website</label>
+                        <input
+                          className="ma-input"
+                          value={form.website}
+                          onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))}
+                          placeholder="https://your-org.org"
+                        />
+                      </div>
+
+                      <div className="ma-field">
+                        <label className="ma-label">Instagram</label>
+                        <input
+                          className="ma-input"
+                          value={form.instagram}
+                          onChange={(e) => setForm((p) => ({ ...p, instagram: e.target.value }))}
+                          placeholder="https://instagram.com/your-handle"
+                        />
+                      </div>
+
+                      <div className="ma-field">
+                        <label className="ma-label">Twitter / X</label>
+                        <input
+                          className="ma-input"
+                          value={form.twitter}
+                          onChange={(e) => setForm((p) => ({ ...p, twitter: e.target.value }))}
+                          placeholder="https://x.com/your-handle"
+                        />
+                      </div>
+
+                      <div className="ma-field">
+                        <label className="ma-label">Facebook</label>
+                        <input
+                          className="ma-input"
+                          value={form.facebook}
+                          onChange={(e) => setForm((p) => ({ ...p, facebook: e.target.value }))}
+                          placeholder="https://facebook.com/your-page"
+                        />
+                      </div>
+
+                      <div className="ma-field">
+                        <label className="ma-label">LinkedIn</label>
+                        <input
+                          className="ma-input"
+                          value={form.linkedIn}
+                          onChange={(e) => setForm((p) => ({ ...p, linkedIn: e.target.value }))}
+                          placeholder="https://linkedin.com/company/your-org"
+                        />
+                      </div>
+
+                      {isBusiness ? (
+                        <div className="ma-field ma-fieldFull">
+                          <label className="ma-label">Business Sector</label>
+                          <input
+                            className="ma-input"
+                            value={form.businessSector}
+                            onChange={(e) =>
+                              setForm((p) => ({ ...p, businessSector: e.target.value }))
+                            }
+                            placeholder="e.g. Education"
+                          />
+                        </div>
+                      ) : null}
+
+                      {isVcse ? (
+                        <div className="ma-field ma-fieldFull">
+                          <label className="ma-label">VCSE Type</label>
+                          <input
+                            className="ma-input"
+                            value={form.vcseType}
+                            onChange={(e) => setForm((p) => ({ ...p, vcseType: e.target.value }))}
+                            placeholder="e.g. Youth mentorship"
+                          />
+                        </div>
+                      ) : null}
+
+                      <div className="ma-field ma-fieldFull">
+                        <label className="ma-label">Bio / Description</label>
+                        <textarea
+                          className="ma-textarea"
+                          rows={5}
+                          value={form.description}
+                          onChange={(e) =>
+                            setForm((p) => ({ ...p, description: e.target.value }))
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div className="ma-actions">
+                      <button type="submit" className="ma-btn ma-btn-primary" disabled={saving}>
+                        {saving ? "Saving…" : "Save Changes"}
+                      </button>
+                    </div>
+                  </form>
                 </div>
-              </div>
-            </aside>
-          </div>
+              ) : null}
+
+              {activeTab === "security" ? (
+                <div className="ma-panel" style={{ marginTop: 16 }}>
+                  <h2 className="ma-panelTitle">Security</h2>
+
+                  <div className="ma-securityGrid">
+                    <form
+                      className="ma-field"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        setSavedMessage("Password update is not wired yet.");
+                        setTimeout(() => setSavedMessage(""), 2500);
+                      }}
+                    >
+                      <label className="ma-label">Current password</label>
+                      <input className="ma-input" type="password" disabled />
+
+                      <label className="ma-label" style={{ marginTop: 12 }}>
+                        New password
+                      </label>
+                      <input className="ma-input" type="password" disabled />
+
+                      <label className="ma-label" style={{ marginTop: 12 }}>
+                        Confirm new password
+                      </label>
+                      <input className="ma-input" type="password" disabled />
+
+                      <div className="ma-actions">
+                        <button type="submit" className="ma-btn ma-btn-primary" disabled>
+                          Update Password
+                        </button>
+                      </div>
+                    </form>
+
+                    <div className="ma-statusCard">
+                      <h3 className="ma-subTitle2">Account status</h3>
+
+                      <div className="ma-toggleRow">
+                        <label className="ma-toggleLabel">
+                          Verification status
+                          <input
+                            type="checkbox"
+                            checked={resolvedVerification}
+                            disabled
+                            className="ma-toggleInput"
+                          />
+                          <span className="ma-toggleVisual" />
+                        </label>
+                        <span className="ma-helpText">
+                          {isVcse ? "Derived from your verification document." : "Available for VCSE accounts."}
+                        </span>
+                      </div>
+
+                      <div className="ma-toggleRow">
+                        <label className="ma-toggleLabel">
+                          Account is active
+                          <input
+                            type="checkbox"
+                            checked
+                            disabled
+                            className="ma-toggleInput"
+                          />
+                          <span className="ma-toggleVisual" />
+                        </label>
+                        <span className="ma-helpText">No toggle backend wired yet.</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </>
+          )}
         </div>
       </div>
-      <Footer/>         
+
+      <Footer />
     </>
   );
 }

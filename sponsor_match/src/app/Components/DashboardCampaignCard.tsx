@@ -94,6 +94,15 @@ function formatGBP(n: number) {
   }).format(n);
 }
 
+function resolveCoverSrc(raw: string | null | undefined): string {
+  const value = String(raw ?? "").trim();
+  if (!value) return "/loadingImage.jpg";
+  if (value.startsWith("http://") || value.startsWith("https://")) return value;
+  if (value.startsWith("/api/files/")) return value;
+  if (value.startsWith("/")) return value;
+  return `/api/files/${value.replace(/^\/+/, "")}`;
+}
+
 export function DashboardCampaignCard({
   title,
   category,
@@ -105,15 +114,23 @@ export function DashboardCampaignCard({
   coverImageUrl,
 }: DashboardCampaignCardProps) {
   const needed = Math.max(0, goal - raised);
+  const coverSrc = resolveCoverSrc(coverImageUrl);
   
   return (
     <div className="bg-white border-[0.3px] border-[rgba(11,15,25,0.12)] rounded-[18px] overflow-hidden flex flex-col transition-all duration-160 ease-in-out hover:translate-y-[-2px] hover:border-[rgba(11,15,25,0.18)] cardBody relative">
-      {coverImageUrl && (
-        <div className="m-[-14px_-14px_0_-14px] h-[170px] bg-[#eee] overflow-hidden relative">
-          <div className="rounded-full w-fit absolute top-6 right-6 px-1 bg-Yellow shadow-xl/30 font-Body capitalize">{status}</div>
-          <img src={coverImageUrl} alt="" className="w-full h-full object-cover block" />
-        </div>
-      )}
+      <div className="m-[-14px_-14px_0_-14px] h-[170px] bg-[#eee] overflow-hidden relative">
+        <div className="rounded-full w-fit absolute top-6 right-6 px-1 bg-Yellow shadow-xl/30 font-Body capitalize">{status}</div>
+        <img
+          src={coverSrc}
+          alt={`${title} cover`}
+          className="w-full h-full object-cover block"
+          onError={(e) => {
+            const img = e.currentTarget;
+            if (img.src.endsWith("/loadingImage.jpg")) return;
+            img.src = "/loadingImage.jpg";
+          }}
+        />
+      </div>
       <div className="p-[14px] flex flex-col gap-[10px] relative">
         <div className="flex justify-between items-center gap-[10px]">
           <span className="text-[12px] p-[7px_11px] rounded-full bg-[rgba(254,216,87,0.35)] border border-[rgba(11,15,25,0.14)] text-[#0b0f19] font-black">{category}</span>

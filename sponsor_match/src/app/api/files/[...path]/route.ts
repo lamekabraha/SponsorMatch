@@ -3,7 +3,7 @@ import fs from "fs/promises";
 import path from "path";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth-config";
-import { resolveStoragePath } from "@/lib/storage";
+import { resolveStoragePath, toStorageRelativePath } from "@/lib/storage";
 import { pool } from "@/lib/db";
 // This file defines the API route handler for file-related operations in a Next.js application.
 // It supports authenticated and authorized access to files stored on the server,
@@ -29,6 +29,48 @@ async function hasMutualFollowing(a: number, b: number): Promise<boolean> {
   );
   const cnt = Number((rows as { cnt?: unknown }[])[0]?.cnt ?? 0);
   return cnt === 2;
+}
+
+/**
+ * Public campaign assets:
+ * - campaign CoverImage file
+ * - files under campaign AdditionalImagePath folder
+ *
+ * This lets search/list pages render open campaign media without requiring
+ * viewer<->owner mutual following.
+ */
+async function isPublicCampaignAsset(relativePath: string): Promise<boolean> {
+  const normalized = String(relativePath).replace(/\\/g, "/").replace(/^\/+/, "");
+
+  // Legacy cover uploads are stored in accounts/<id>/CampaignCover/<file>
+  // and should be publicly readable on search/listing pages.
+  if (/^accounts\/\d+\/CampaignCover\/[^/]+$/i.test(normalized)) {
+    return true;
+  }
+
+  const [rows] = await pool.execute(
+    `SELECT CoverImage, AdditionalImagePath
+     FROM sponsor_match.campaign
+     WHERE Status = 'open'`,
+  );
+
+  const list = rows as Array<{ CoverImage: string | null; AdditionalImagePath: string | null }>;
+  for (const row of list) {
+    const coverRel = toStorageRelativePath(row.CoverImage);
+    if (coverRel && coverRel === normalized) {
+      return true;
+    }
+
+    const additionalFolder =
+      row.AdditionalImagePath == null
+        ? ""
+        : String(row.AdditionalImagePath).replace(/\\/g, "/").replace(/^\/+/, "").replace(/\/+$/, "");
+    if (additionalFolder && normalized.startsWith(`${additionalFolder}/`)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function getMimeType(filePath: string): string {
@@ -74,6 +116,10 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
   const isOwnAccount = targetAccountId != null && targetAccountId === accountId;
   if (!isOwnAccount) {
+    const isPublicAsset = await isPublicCampaignAsset(relativePath);
+    if (isPublicAsset) {
+      // allow public campaign media even across accounts
+    } else {
     if (targetAccountId == null) {
       return NextResponse.json(
         { success: false, error: "Forbidden" },
@@ -87,6 +133,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         { success: false, error: "Forbidden" },
         { status: 403 },
       );
+    }
     }
   }
 
