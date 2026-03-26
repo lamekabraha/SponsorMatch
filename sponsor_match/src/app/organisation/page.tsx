@@ -86,7 +86,7 @@ export default function OrganisationPage() {
 
                 <div className="socials-row">
                   <a
-                    href="https://instagram.com/sportsforall"
+                    href="https://www.instagram.com/fundingiukire/"
                     target="_blank"
                     rel="noreferrer"
                     className="social-btn"
@@ -97,7 +97,7 @@ export default function OrganisationPage() {
                   </a>
 
                   <a
-                    href="https://tiktok.com/@sportsforall"
+                    href="https://www.tiktok.com/@fundingi?_t=8oqECv4W0X2&_r=1"
                     target="_blank"
                     rel="noreferrer"
                     className="social-btn"
