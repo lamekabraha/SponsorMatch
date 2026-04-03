@@ -1,5 +1,10 @@
 import path from "path";
-import fs from "fs/promises";
+// Move all usage of 'fs/promises' into functions that only
+// run on the server and use dynamic import or require there.
+
+async function getFs() {
+  return import("fs/promises");
+}
 
 const STORAGE_ROOT =
   process.env.STORAGE_PATH ||
@@ -26,6 +31,7 @@ function getAccountSubdir(accountId: number, type: string): string {
  */
 export async function ensureAccountDir(accountId: number): Promise<string> {
   const dir = getAccountDir(accountId);
+  const fs = await getFs();
   await fs.mkdir(dir, { recursive: true });
   return dir;
 }
@@ -44,6 +50,7 @@ export async function saveAccountFile(
   buffer: Buffer,
   ext: string
 ): Promise<string> {
+  const fs = await getFs();
   const subdir = getAccountSubdir(accountId, type);
   await fs.mkdir(subdir, { recursive: true });
   const filename = `${type}.${ext}`;

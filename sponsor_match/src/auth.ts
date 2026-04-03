@@ -49,10 +49,11 @@ const handler = NextAuth({
 
                 return {
                     id: String(user.UserId),
+                    userId: user.UserId,
                     accountId: user.AccountId,
                     email: user.Email,
                     name: `${user.FirstName} ${user.LastName}`,
-                    accountTypeId: user.AccountTypeId,
+                    accountTypeId: Number(user.AccountTypeId ?? 0),
                 };
                 } catch (err) {
                     console.error('[auth] authorize error:', err);

@@ -1,433 +1,814 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Navbar from "../Components/Navbar";
-import Footer from "../Components/Footer";
 import "./myaccount.css";
+import { toStorageRelativePath } from "@/lib/storagePaths";
+
+type Tab = "profile" | "branding" | "preferences" | "security";
+
+type MyAccountApiResponse = {
+  success: boolean;
+  data: {
+    profile: {
+      UserId?: number;
+      FirstName?: string;
+      LastName?: string;
+      UserEmail?: string;
+      UserPhone?: string;
+      [k: string]: unknown;
+    } | null;
+    account: {
+      AccountTypeId?: number;
+      AccountType?: string;
+      Description?: string | null;
+      Address?: string | null;
+      logo?: string | null;
+      Website?: string | null;
+      Instagram?: string | null;
+      Twitter?: string | null;
+      Facebook?: string | null;
+      LinkedIn?: string | null;
+      [k: string]: unknown;
+    } | null;
+    preferences?: {
+      preferredCategories: number[];
+      preferredBenefits: number[];
+    };
+  };
+};
+
+type VcseTypeOption = { VcseTypeId: number; Name: string };
+type BenefitOption = { benefitId: number; benefitName: string };
 
 export default function MyAccountPage() {
-  const [form, setForm] = useState({
-    firstName: "Bob",
-    lastName: "Smith",
-    username: "bob123",
-    phone: "+44 7123 456789",
-    email: "bob23@example.com",
-    bio: "Content creator focused on gaming, lifestyle and brand partnerships.",
-
-    // onboarding / business preferences
-    companyAddress: "123 Oxford Street, London",
-    industry: "technology",
-    companySize: "11-50",
-    website: "https://bobmedia.co.uk",
-    
-  });
-  const [form1, setForm1] = useState({
-    instagram: "",
-    twitter:"",
-    tiktok:"",
-    facebook:"",
-  })
-
+  const [api, setApi] = useState<MyAccountApiResponse["data"] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [savedMessage, setSavedMessage] = useState("");
-  const [deleteConfirm, setDeleteConfirm] = useState(false);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-  const handleChange1 = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setForm1({...form1,[e.target.name]:e.target.value})
+  const [activeTab, setActiveTab] = useState<Tab>("profile");
+
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    description: "",
+    address: "",
+    website: "",
+    instagram: "",
+    twitter: "",
+    facebook: "",
+    linkedIn: "",
+    preferredCategories: [] as number[],
+    preferredBenefits: [] as number[],
+    currentPassword: "",
+    newPassword: "",
+    repeatPassword: ""
+  });
+
+  const [vcseTypes, setVcseTypes] = useState<VcseTypeOption[]>([]);
+  const [benefitTypes, setBenefitTypes] = useState<BenefitOption[]>([]);
+
+  const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [logoCacheBust, setLogoCacheBust] = useState(0);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setErrorMessage(null);
+
+        const res = await fetch("/api/myaccount");
+        const json: MyAccountApiResponse = await res.json();
+        if (!json?.success) {
+          throw new Error("Failed to load");
+        }
+        setApi(json.data);
+      } catch (e) {
+        console.error("Error fetching account data:", e);
+        setErrorMessage("Failed to load account data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (!api) return;
+
+    const prefs = api.preferences ?? {
+      preferredCategories: [],
+      preferredBenefits: [],
+    };
+
+    setFormData((prev) => ({
+      ...prev,
+      firstName: String(api.profile?.FirstName ?? ""),
+      lastName: String(api.profile?.LastName ?? ""),
+      email: String(api.profile?.UserEmail ?? ""),
+      phone: String(api.profile?.UserPhone ?? ""),
+      description: String(api.account?.Description ?? ""),
+      address: String(api.account?.Address ?? ""),
+      website: String(api.account?.Website ?? ""),
+      instagram: String(api.account?.Instagram ?? ""),
+      twitter: String(api.account?.Twitter ?? ""),
+      facebook: String(api.account?.Facebook ?? ""),
+      linkedIn: String(api.account?.LinkedIn ?? ""),
+      preferredCategories: [...prefs.preferredCategories],
+      preferredBenefits: [...prefs.preferredBenefits],
+    }));
+  }, [api]);
+
+  const accountType = api?.account?.AccountType ?? "";
+  const isBusiness = accountType === 'Business';
+  const isVcse = !isBusiness;
+
+  useEffect(() => {
+    if (!isBusiness) return;
+
+    const loadOptions = async () => {
+      try {
+        const [orgRes, benRes] = await Promise.all([
+          fetch("/api/auth/register/onboarding/OrgTypes"),
+          fetch("/api/campaign/BenefitTypes"),
+        ]);
+
+        if (orgRes.ok) {
+          const raw = (await orgRes.json()) as Record<string, unknown>[];
+          setVcseTypes(
+            (Array.isArray(raw) ? raw : []).map((row) => ({
+              VcseTypeId: Number(row.VcseTypeId ?? 0),
+              Name: String(row.Name ?? row.VcseType ?? ""),
+            })),
+          );
+        }
+
+        if (benRes.ok) {
+          const raw = (await benRes.json()) as Record<string, unknown>[];
+          setBenefitTypes(
+            (Array.isArray(raw) ? raw : []).map((row) => ({
+              benefitId: Number(row.benefitId ?? row.BenefitId ?? 0),
+              benefitName: String(row.benefitName ?? row.Benefit ?? row.Name ?? ""),
+            })),
+          );
+        }
+      } catch (e) {
+        console.error("Failed to load preference options:", e);
+      }
+    };
+
+    loadOptions();
+  }, [isBusiness]);
+
+  const logoPreviewSrc = useMemo(() => {
+    const stored = api?.account?.logo;
+    const rel = toStorageRelativePath(
+      stored == null ? null : String(stored),
+    );
+    if (!rel) return null;
+    const qs = logoCacheBust > 0 ? `?v=${logoCacheBust}` : "";
+    return `/api/files/${rel}${qs}`;
+  }, [api, logoCacheBust]);
+
+  const resolvedVerification = false;
+
+  const toggleCategory = useCallback((id: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      preferredCategories: prev.preferredCategories.includes(id)
+        ? prev.preferredCategories.filter((x) => x !== id)
+        : [...prev.preferredCategories, id],
+    }));
+  }, []);
+
+  const toggleBenefit = useCallback((id: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      preferredBenefits: prev.preferredBenefits.includes(id)
+        ? prev.preferredBenefits.filter((x) => x !== id)
+        : [...prev.preferredBenefits, id],
+    }));
+  }, []);
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setErrorMessage(null);
+    setSavedMessage("");
+    try{
+      const res = await fetch('/api/myaccount/saveProfile', {
+        method: 'PUT', 
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName:formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (result.success){
+        setSavedMessage("Profile changes saved.");
+        setTimeout(() => setSavedMessage(""), 3000);
+      } else {
+        setErrorMessage(String(result.error ?? "Failed to save profile"));
+        setTimeout(() => setErrorMessage(""), 3000);
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(String(err ?? "Failed to save profile"));
+      setTimeout(() => setErrorMessage(""), 3000);
+    } finally {
+      setSaving(false);
+    }
   }
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSaveBranding = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSaving(true);
+    setErrorMessage(null);
+    setSavedMessage('');
+    try{
+      const res = await fetch('/api/myaccount/saveBranding', {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          address: formData.address,
+          website: formData.website,
+          instagram: formData.instagram,
+          twitter: formData.twitter,
+          facebook: formData.facebook,
+          linkedIn: formData.linkedIn
+        }),
+      });
+
+      const result = await res.json();
+
+      if (result.success){
+        setSavedMessage('Branding changes saved'); 
+        setTimeout(() => setSavedMessage(''), 3000);
+      }else {
+        setErrorMessage(String(result.error ?? 'Failed to save branding information'));
+        setTimeout(() => setErrorMessage(''), 3000);
+      }
+    }catch(error) {
+      console.error(error);
+      setErrorMessage(String(error ?? 'Failed to save branding information'));
+      setTimeout(() => setErrorMessage(''),3000);
+    }finally {
+      setSaving(false)
+    }
+  }
+
+
+  const handleSavingPref = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setErrorMessage(null);
+    setSavedMessage('');
+
+    try{
+      const res = await fetch('/api/myaccount/savePref', {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          preferredCategories: formData.preferredCategories,
+          preferredBenefits: formData.preferredBenefits,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        setSavedMessage('Matching Preferences updated!');
+        setTimeout(() => setSavedMessage(''), 3000);
+      }else{
+        setErrorMessage(String(result.error?? 'Failed to update preferences.'))
+        setTimeout(() => setErrorMessage(''), 3000)
+      }
+    }catch (error) {
+      console.error(error)
+      setErrorMessage(String(error ?? 'Failed to update preference.'))
+      setTimeout(() => setErrorMessage(''), 3000)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSavedMessage('')
+    setErrorMessage(null)
+    setSaving(true)
 
     try {
-      // personal info save
-      // onboarding preferences save
-      // connect these to your real backend routes when ready
+      const res = await fetch("/api/myaccount/changePassword", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPassword: formData.currentPassword,
+          newPassword: formData.newPassword,
+          repeatPassword: formData.repeatPassword,
+        }),
+      })
 
-      // Example:
-      // await fetch("/api/account/update", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify(form),
-      // });
+      const raw = await res.text()
+      let result: { success?: boolean; error?: string }
+      try {
+        result = raw ? (JSON.parse(raw) as typeof result) : {}
+      } catch {
+        setErrorMessage(
+          !res.ok
+            ? `Request failed (${res.status}).`
+            : "The server returned an unexpected response."
+        )
+        setTimeout(() => setErrorMessage(""), 5000)
+        return
+      }
 
-      setSavedMessage("Your account details and onboarding preferences have been updated.");
-      setTimeout(() => setSavedMessage(""), 3000);
+      if (result.success) {
+        setSavedMessage("Password updated.")
+        setTimeout(() => setSavedMessage(""), 3000)
+      } else {
+        setErrorMessage(String(result.error ?? "Failed to change password."))
+        setTimeout(() => setErrorMessage(""), 3000)
+      }
     } catch (error) {
-      console.error(error);
-      alert("Failed to save changes.");
+      console.error(error)
+      setErrorMessage(String(error ?? "Failed to change password."))
+      setTimeout(() => setErrorMessage(""), 3000)
+    } finally {
+      setSaving(false)
     }
-  };
-
-  const handleDeleteAccount = () => {
-    alert("delete account logic goes here");
+  }
+  
+  const handleLogoUpload = async (file: File | null) => {
+    if (!file) return;
+    setSavedMessage("");
+    setErrorMessage(null);
+    setUploadingLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append("logo", file);
+      const res = await fetch("/api/myaccount/logo", { method: "POST", body: formData });
+      const raw = await res.text();
+      let data: { success?: boolean; error?: string; logoUrl?: string };
+      try {
+        data = raw ? (JSON.parse(raw) as typeof data) : {};
+      } catch {
+        setErrorMessage(
+          !res.ok
+            ? `Upload failed (${res.status}).`
+            : "The server returned an unexpected response.",
+        );
+        setTimeout(() => setErrorMessage(""), 5000);
+        return;
+      }
+      if (!res.ok || !data.success) {
+        setErrorMessage(String(data.error ?? "Failed to upload logo."));
+        setTimeout(() => setErrorMessage(""), 4000);
+        return;
+      }
+      if (data.logoUrl) {
+        setApi((prev) =>
+          prev?.account
+            ? { ...prev, account: { ...prev.account, logo: data.logoUrl } }
+            : prev,
+        );
+        setLogoCacheBust((n) => n + 1);
+      }
+      setSavedMessage("Logo updated.");
+      setTimeout(() => setSavedMessage(""), 3000);
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(String(err ?? "Failed to upload logo."));
+      setTimeout(() => setErrorMessage(""), 4000);
+    } finally {
+      setUploadingLogo(false);
+    }
   };
 
   return (
     <>
       <Navbar />
-
-      <div className="accountPage">
-        <div className="accountContainer">
-          <div className="accountBanner">
-            <div className="accountBannerLeft">
-              <span className="accountBannerLabel">Account Settings</span>
-              <span className="accountBannerValue">
-                Manage your personal details, email, and onboarding preferences.
-              </span>
-            </div>
-          </div>
-
-          <div className="accountTitleRow">
+      <div className="page-container">
+        <div className="ma-page">
+          <div className="ma-header">
             <div>
-              <h1 className="accountTitle">My Account</h1>
-              <p className="accountSubtitle">
-                Keep your profile information and business preferences up to date for better matches.
+              <h1 className="ma-title">My Account</h1>
+              <p className="ma-subtitle">
+                Keep your details up to date for better matches and sponsor visibility.
               </p>
             </div>
+            <div className="ma-headerBadge">{accountType}</div>
           </div>
 
-          <div className="accountGrid">
-            <section className="accountCard">
-              <div className="sectionHeader">
-                <h2>Personal Information</h2>
-                <p>Edit your contact details and public information.</p>
-              </div>
+          <div className="ma-tabs">
+            <button
+              type="button"
+              className={`ma-tabButton ${activeTab === "profile" ? "is-active" : ""}`}
+              onClick={() => setActiveTab("profile")}
+              aria-pressed={activeTab === "profile"}
+            >
+              Profile
+            </button>
+            <button
+              type="button"
+              className={`ma-tabButton ${activeTab === "branding" ? "is-active" : ""}`}
+              onClick={() => setActiveTab("branding")}
+              aria-pressed={activeTab === "branding"}
+            >
+              Branding
+            </button>
+            {isBusiness ? (
+              <button
+                type="button"
+                className={`ma-tabButton ${activeTab === "preferences" ? "is-active" : ""}`}
+                onClick={() => setActiveTab("preferences")}
+                aria-pressed={activeTab === "preferences"}
+              >
+                Matching preferences
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className={`ma-tabButton ${activeTab === "security" ? "is-active" : ""}`}
+              onClick={() => setActiveTab("security")}
+              aria-pressed={activeTab === "security"}
+            >
+              Security
+            </button>
+          </div>
 
-              <form onSubmit={handleSave} className="accountForm">
-                <div className="formGrid">
-                  <div className="formGroup">
-                    <label htmlFor="firstName">First Name</label>
-                    <input
-                      id="firstName"
-                      name="firstName"
-                      type="text"
-                      value={form.firstName}
-                      onChange={handleChange}
-                      className="accountInput"
-                    />
-                  </div>
+          {loading ? (
+            <div className="ma-panel" style={{ marginTop: 16 }}>
+              Loading…
+            </div>
+          ) : (
+            <>
+              {errorMessage ? <div className="ma-error">{errorMessage}</div> : null}
+              {savedMessage ? <div className="ma-success">{savedMessage}</div> : null}
 
-                  <div className="formGroup">
-                    <label htmlFor="lastName">Last Name</label>
-                    <input
-                      id="lastName"
-                      name="lastName"
-                      type="text"
-                      value={form.lastName}
-                      onChange={handleChange}
-                      className="accountInput"
-                    />
-                  </div>
+              {activeTab === "profile" ? (
+                <div className="ma-panel" style={{ marginTop: 16 }}>
+                  <h2 className="ma-panelTitle">Profile Info</h2>
+                  <form onSubmit={handleSaveProfile} className="ma-form">
+                    <div className="ma-formGrid">
+                      <div className="ma-field">
+                        <label className="ma-label">First Name</label>
+                        <input
+                          className="ma-input"
+                          value={formData.firstName}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, firstName: e.target.value }))
+                          }
+                        />
+                      </div>
 
-                  <div className="formGroup">
-                    <label htmlFor="username">Username</label>
-                    <input
-                      id="username"
-                      name="username"
-                      type="text"
-                      value={form.username}
-                      onChange={handleChange}
-                      className="accountInput"
-                    />
-                  </div>
+                      <div className="ma-field">
+                        <label className="ma-label">Last Name</label>
+                        <input
+                          className="ma-input"
+                          value={formData.lastName}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, lastName: e.target.value }))
+                          }
+                        />
+                      </div>
 
-                  <div className="formGroup">
-                    <label htmlFor="phone">Phone Number</label>
-                    <input
-                      id="phone"
-                      name="phone"
-                      type="text"
-                      value={form.phone}
-                      onChange={handleChange}
-                      className="accountInput"
-                    />
-                  </div>
-                </div>
+                      <div className="ma-field">
+                        <label className="ma-label">Email</label>
+                        <input
+                          className="ma-input"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, email: e.target.value }))
+                          }
+                        />
+                      </div>
 
-                <div className="formGroup">
-                  <label htmlFor="bio">Bio</label>
-                  <textarea
-                    id="bio"
-                    name="bio"
-                    rows={5}
-                    value={form.bio}
-                    onChange={handleChange}
-                    className="accountTextarea"
-                  />
-                </div>
-
-                <div className="sectionDivider" />
-
-                <div className="sectionHeader smallHeader">
-                  <h2>Email Address</h2>
-                  <p>Update the email linked to your SponsorMatch account.</p>
-                </div>
-
-                <div className="formGroup">
-                  <label htmlFor="email">Email</label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    className="accountInput"
-                  />
-                </div>
-
-                <div className="sectionDivider" />
-
-                <div className="sectionHeader smallHeader">
-                  <h2>Onboarding Preferences</h2>
-                  <p>Update the business details you originally added during onboarding.</p>
-                </div>
-
-                <div className="formGroup">
-                  <label htmlFor="companyAddress">Company Address</label>
-                  <input
-                    id="companyAddress"
-                    name="companyAddress"
-                    type="text"
-                    value={form.companyAddress}
-                    onChange={handleChange}
-                    className="accountInput"
-                    placeholder="Enter your company address"
-                  />
-                </div>
-
-                <div className="formGrid">
-                  <div className="formGroup">
-                    <label htmlFor="industry">Industry</label>
-                    <select
-                      id="industry"
-                      name="industry"
-                      value={form.industry}
-                      onChange={handleChange}
-                      className="accountSelect"
-                    >
-                      <option value="">Select industry</option>
-                      <option value="agriculture">Agriculture</option>
-                      <option value="construction">Construction</option>
-                      <option value="education">Education</option>
-                      <option value="finance">Finance</option>
-                      <option value="health">Health</option>
-                      <option value="technology">Technology</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-
-                  <div className="formGroup">
-                    <label htmlFor="companySize">Company Size</label>
-                    <select
-                      id="companySize"
-                      name="companySize"
-                      value={form.companySize}
-                      onChange={handleChange}
-                      className="accountSelect"
-                    >
-                      <option value="">Select company size</option>
-                      <option value="1-10">1-10</option>
-                      <option value="11-50">11-50</option>
-                      <option value="51-100">51-100</option>
-                      <option value="101-500">101-500</option>
-                      <option value="501-1000">501-1000</option>
-                      <option value="1001-5000">1001-5000</option>
-                      <option value="5001-10000">5001-10000</option>
-                      <option value="10001-50000">10001-50000</option>
-                      <option value="50001-100000">50001-100000</option>
-                      <option value="100001-500000">100001-500000</option>
-                      <option value="500001-1000000">500001-1000000</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="formGroup">
-                  <label htmlFor="website">Website</label>
-                  <input
-                    id="website"
-                    name="website"
-                    type="text"
-                    value={form.website}
-                    onChange={handleChange}
-                    className="accountInput"
-                    placeholder="Enter your company website"
-                  />
-                </div>
-
-                {savedMessage && (
-                  <div className="successMessage">{savedMessage}</div>
-                )}
-
-                <div className="actionRow">
-                  <button type="submit" className="btn btnPrimary">
-                    Save Changes
-                  </button>
-                </div>
-              </form>
-            </section>
-
-            <aside className="accountSide">
-              <div className="accountCard">
-                <div className="sectionHeader">
-                  <h2>Account Overview</h2>
-                  <p>Your current account details at a glance.</p>
-                </div>
-
-                <div className="overviewList">
-                  <div className="overviewItem">
-                    <span className="overviewLabel">Full Name</span>
-                    <span className="overviewValue">
-                      {form.firstName} {form.lastName}
-                    </span>
-                  </div>
-
-                  <div className="overviewItem">
-                    <span className="overviewLabel">Username</span>
-                    <span className="overviewValue">@{form.username}</span>
-                  </div>
-
-                  <div className="overviewItem">
-                    <span className="overviewLabel">Email</span>
-                    <span className="overviewValue">{form.email}</span>
-                  </div>
-
-                  <div className="overviewItem">
-                    <span className="overviewLabel">Phone</span>
-                    <span className="overviewValue">{form.phone}</span>
-                  </div>
-
-                  <div className="overviewItem">
-                    <span className="overviewLabel">Industry</span>
-                    <span className="overviewValue">{form.industry || "Not set"}</span>
-                  </div>
-
-                  <div className="overviewItem">
-                    <span className="overviewLabel">Company Size</span>
-                    <span className="overviewValue">{form.companySize || "Not set"}</span>
-                  </div>
-
-                  <div className="overviewItem">
-                    <span className="overviewLabel">Website</span>
-                    <span className="overviewValue">{form.website || "Not set"}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="accountCard">
-                <div className="sectionHeader">
-                  <h2>Social media</h2>
-                  <p>add your social media links</p>
-                </div>
-                <div className="formGroup">
-                  <label htmlFor="instagram">Link to Instagram page</label>
-                  <input
-                    id = "instagram"
-                    name = "instagram"
-                    type="text"
-                    value={form1.instagram}
-                    onChange={handleChange1}
-                    className="accountInput"
-                    placeholder="Enter your Instagram link here"
-                    />
-                    <label htmlFor="twitter">Link to Twitter page</label>
-                  <input
-                    id = "twitter"
-                    name = "twitter"
-                    type="text"
-                    value={form1.twitter}
-                    onChange={handleChange1}
-                    className="accountInput"
-                    placeholder="Enter your Twitter link here"
-                    />
-                    <label htmlFor="tiktok">Link to Tiktok page</label>
-                  <input
-                    id = "tiktok"
-                    name = "tiktok"
-                    type="text"
-                    value={form1.tiktok}
-                    onChange={handleChange1}
-                    className="accountInput"
-                    placeholder="Enter your Tiktok link here"
-                    />
-                    <label htmlFor="facebook">Link to Facebook Page</label>
-                  <input
-                    id = "facebook"
-                    name = "facebook"
-                    type="text"
-                    value={form1.facebook}
-                    onChange={handleChange1}
-                    className="accountInput"
-                    placeholder="Enter your Facebook link here"
-                    />
-                    {savedMessage && (
-                  <div className="successMessage">{savedMessage}</div>
-                )}
-
-                <div className="actionRow">
-                  <button type="submit" className="btn btnPrimary">
-                    Save Changes
-                  </button>
-                </div>
-                </div>
-              </div>
-
-              <div className="accountCard dangerCard">
-                <div className="sectionHeader">
-                  <h2>Delete your account</h2>
-                  <p>Permanently remove your SponsorMatch account.</p>
-                </div>
-
-                <div className="dangerBox">
-                  <p>
-                    Deleting your profile will permanently remove all of your
-                    data such as your email address, onboarding preferences, and
-                    account details. This action can't be undone.
-                  </p>
-
-                  {!deleteConfirm ? (
-                    <button
-                      type="button"
-                      className="btn btnDanger"
-                      onClick={() => setDeleteConfirm(true)}
-                    >
-                      Delete Account
-                    </button>
-                  ) : (
-                    <div className="deleteConfirmBox">
-                      <p className="deleteWarning">
-                        Are you sure you want to delete your account?
-                      </p>
-                      <div className="deleteActions">
-                        <button
-                          type="button"
-                          className="btn btnDanger"
-                          onClick={handleDeleteAccount}
-                        >
-                          Yes, Delete
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btnGhost"
-                          onClick={() => setDeleteConfirm(false)}
-                        >
-                          Cancel
-                        </button>
+                      <div className="ma-field">
+                        <label className="ma-label">Phone</label>
+                        <input
+                          className="ma-input"
+                          type="tel"
+                          value={formData.phone}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, phone: e.target.value }))
+                          }
+                        />
                       </div>
                     </div>
-                  )}
+
+                    <div className="ma-actions">
+                      <button
+                        type="submit"
+                        className="ma-btn ma-btn-primary"
+                        disabled={saving}
+                      >
+                        {saving ? "Saving…" : "Save Changes"}
+                      </button>
+                    </div>
+                  </form>
                 </div>
-              </div>
-            </aside>
-          </div>
+              ) : null}
+
+              {activeTab === "branding" ? (
+                <div className="ma-panel" style={{ marginTop: 16 }}>
+                  <h2 className="ma-panelTitle">Identity & Branding</h2>
+
+                  <div className="ma-brandingGrid">
+                    <div className="ma-logoPreview">
+                      <div className="ma-avatarWrap">
+                        {logoPreviewSrc ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={logoPreviewSrc}
+                            alt="Profile logo"
+                            className="ma-avatarImg"
+                          />
+                        ) : (
+                          <div className="ma-avatarFallback">Logo</div>
+                        )}
+                      </div>
+                      <p className="ma-helpText">
+                        Upload a clear square logo for better recognition.
+                      </p>
+                    </div>
+
+                    <div className="ma-uploadCard">
+                      <label className="ma-label">Profile Logo</label>
+                      <input
+                        className="ma-fileInput"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={(e) => handleLogoUpload(e.target.files?.[0] ?? null)}
+                        disabled={uploadingLogo}
+                      />
+                      <p className="ma-helpText" style={{ marginTop: 10 }}>
+                        Uploads immediately using your account’s storage system.
+                      </p>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleSaveBranding} className="ma-form">
+                    <div className="ma-formGrid">
+                      <div className="ma-field ma-fieldFull">
+                        <label className="ma-label">Bio / Description</label>
+                        <textarea
+                          className="ma-textarea"
+                          value={formData.description}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, description: e.target.value }))
+                          }
+                          placeholder="Enter your bio / description"
+                        />
+                      </div>
+                      <div className="ma-field">
+                        <label className="ma-label">Address</label>
+                        <input
+                          className="ma-input"
+                          value={formData.address}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, address: e.target.value }))
+                          }
+                          placeholder="Enter your address"
+                        />
+                      </div>
+                      <div className="ma-field">
+                        <label className="ma-label">Website</label>
+                        <input
+                          className="ma-input"
+                          value={formData.website}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, website: e.target.value }))
+                          }
+                          placeholder="https://your-org.org"
+                        />
+                      </div>
+
+                      <div className="ma-field">
+                        <label className="ma-label">Instagram</label>
+                        <input
+                          className="ma-input"
+                          value={formData.instagram}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, instagram: e.target.value }))
+                          }
+                          placeholder="https://instagram.com/your-handle"
+                        />
+                      </div>
+
+                      <div className="ma-field">
+                        <label className="ma-label">Twitter / X</label>
+                        <input
+                          className="ma-input"
+                          value={formData.twitter}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, twitter: e.target.value }))
+                          }
+                          placeholder="https://x.com/your-handle"
+                        />
+                      </div>
+
+                      <div className="ma-field">
+                        <label className="ma-label">Facebook</label>
+                        <input
+                          className="ma-input"
+                          value={formData.facebook}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, facebook: e.target.value }))
+                          }
+                          placeholder="https://facebook.com/your-page"
+                        />
+                      </div>
+
+                      <div className="ma-field">
+                        <label className="ma-label">LinkedIn</label>
+                        <input
+                          className="ma-input"
+                          value={formData.linkedIn}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, linkedIn: e.target.value }))
+                          }
+                          placeholder="https://linkedin.com/company/your-org"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="ma-actions">
+                      <button
+                        type="submit"
+                        className="ma-btn ma-btn-primary"
+                        disabled={saving}
+                      >
+                        {saving ? "Saving…" : "Save Changes"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              ) : null}
+
+              {activeTab === "preferences" && isBusiness ? (
+                <div className="ma-panel" style={{ marginTop: 16 }}>
+                  <h2 className="ma-panelTitle">Matching preferences</h2>
+                  <p className="ma-helpText" style={{ marginTop: 8, marginBottom: 0 }}>
+                    Choose which cause areas and partnership benefits should influence your Match Score.
+                  </p>
+
+                  <form onSubmit={handleSavingPref} className="ma-form">
+                    <div className="ma-prefSection">
+                      <h3 className="ma-prefSectionTitle">Cause areas</h3>
+                      <p className="ma-helpText ma-prefSectionHint">
+                        Organisation types (VCSE categories) you care about.
+                      </p>
+                      <div className="ma-prefGrid">
+                        {vcseTypes.map((row) => (
+                          <label
+                            key={row.VcseTypeId}
+                            className={`ma-prefCheck ${formData.preferredCategories.includes(row.VcseTypeId) ? "is-checked" : ""}`}
+                          >
+                            <input
+                              type="checkbox"
+                              className="ma-prefCheckbox"
+                              checked={formData.preferredCategories.includes(row.VcseTypeId)}
+                              onChange={() => toggleCategory(row.VcseTypeId)}
+                            />
+                            <span className="ma-prefCheckLabel">
+                              {row.Name || `Type ${row.VcseTypeId}`}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="ma-prefSection">
+                      <h3 className="ma-prefSectionTitle">Desired benefits</h3>
+                      <p className="ma-helpText ma-prefSectionHint">
+                        Partnership benefits you want to prioritise.
+                      </p>
+                      <div className="ma-prefGrid">
+                        {benefitTypes.map((b) => (
+                          <label
+                            key={b.benefitId}
+                            className={`ma-prefCheck ${formData.preferredBenefits.includes(b.benefitId) ? "is-checked" : ""}`}
+                          >
+                            <input
+                              type="checkbox"
+                              className="ma-prefCheckbox"
+                              checked={formData.preferredBenefits.includes(b.benefitId)}
+                              onChange={() => toggleBenefit(b.benefitId)}
+                            />
+                            <span className="ma-prefCheckLabel">{b.benefitName}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="ma-actions">
+                      <button
+                        type="submit"
+                        className="ma-btn ma-btn-primary"
+                        disabled={saving}
+                      >
+                        {saving ? "Saving…" : "Save matching preferences"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              ) : null}
+
+              {activeTab === "security" ? (
+                <div className="ma-panel" style={{ marginTop: 16 }}>
+                  <h2 className="ma-panelTitle">Security</h2>
+
+                  <div className="ma-securityGrid">
+                    <div className="ma-statusCard">
+                      <h3 className="ma-subTitle2">Change Password</h3>
+                      <form onSubmit={handleChangePassword} className="ma-form">
+                        <label htmlFor="currentPassword" className="ma-label">Current Password</label>
+                        <input
+                          type="password"
+                          className="ma-input"
+                          id="currentPassword"
+                          value={formData.currentPassword || ""}
+                          onChange={e =>
+                            setFormData(prev => ({
+                              ...prev,
+                              currentPassword: e.target.value
+                            }))
+                          }
+                          autoComplete="current-password"
+                        />
+                        <label htmlFor="newPassword" className="ma-label">New Password</label>
+                        <input
+                          type="password"
+                          className="ma-input"
+                          id="newPassword"
+                          value={formData.newPassword || ""}
+                          onChange={e =>
+                            setFormData(prev => ({
+                              ...prev,
+                              newPassword: e.target.value
+                            }))
+                          }
+                        />
+                        <label htmlFor="confirmNewPassword" className="ma-label">Confirm New Password</label>
+                        <input
+                          type="password"
+                          className="ma-input"
+                          id="repeatPassword"
+                          value={formData.repeatPassword || ""}
+                          onChange={e =>
+                            setFormData(prev => ({
+                              ...prev,
+                              repeatPassword: e.target.value
+                            }))
+                          }
+                        />
+                        <div className="ma-actions">
+                          <button type="submit" className="ma-btn ma-btn-primary" disabled={saving}>
+                            {saving ? "Saving…" : "Save Changes"}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                    <div className="ma-statusCard">
+                      <h3 className="ma-subTitle2">Account status</h3>
+
+                      <div className="ma-toggleRow">
+                        <label className="ma-toggleLabel">
+                          Verification status
+                          <input
+                            type="checkbox"
+                            checked={resolvedVerification}
+                            disabled
+                            className="ma-toggleInput"
+                          />
+                          <span className="ma-toggleVisual" />
+                        </label>
+                        <span className="ma-helpText">
+                          {isVcse
+                            ? "Derived from your verification document (not available here)."
+                            : "Available for VCSE accounts."}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </>
+          )}
         </div>
       </div>
-      <Footer/>         
     </>
   );
 }

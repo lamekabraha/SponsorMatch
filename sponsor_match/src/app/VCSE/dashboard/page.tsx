@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { useSession } from "next-auth/react";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import { DashboardDataCard } from "../../Components/DashboardDataCard";
 import { DashboardCampaignCard } from "@/app/Components/DashboardCampaignCard";
 import DashboardSkeleton from "../../Components/dashboardSkeletonQuickData";
 import CampaignCardSkeleton from "../../Components/dashboardSkeletonCampaignCards";
+import { useSession } from "next-auth/react";
+
 interface DashboardData {
   totalRaised: number;
   activeCampaign: number;
@@ -53,6 +54,7 @@ export default function DashboardPage() {
 
   const [favs, setFavs] = useState<string[]>([]);
 
+
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryQuery, setCategoryQuery]= useState('');
@@ -87,8 +89,6 @@ export default function DashboardPage() {
   fetchDashboardData();
   }, [])
   
-  console.log(dashboardData)
-
   const filteredCampaigns = useMemo(() => {
     const campaigns = dashboardData?.campaigns ?? [];
     const normalizeSearch = searchQuery.toLowerCase().trim();

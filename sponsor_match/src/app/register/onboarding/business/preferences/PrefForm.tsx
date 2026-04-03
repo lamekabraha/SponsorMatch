@@ -21,7 +21,7 @@ export default function PreferencesForm({ onComplete }: PreferencesFormProps) {
     const router = useRouter();
     const [orgPrefs, setOrgPrefs] = useState<OrgPref[]>([]);
     const [selectedOrgPref, setSelectedOrgPref] = useState<number[]>([]);
-    const [benefits, setBenefits] = useState<CampaignBenefits[]>([]);
+    const [benefits, setBenefits] = useState<CampainBenefits[]>([]);
     const [selectedBenefits, setSelectedBenefits] = useState<number[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -117,7 +117,7 @@ export default function PreferencesForm({ onComplete }: PreferencesFormProps) {
                         htmlFor={`pref-${orgPref.VcseTypeId}`}
                         className="font-Body text-Black cursor-pointer flex-1"
                     >
-                        {orgPref.Name ?? orgPref.VcseType ?? `Type ${orgPref.VcseTypeId}`}
+                        {orgPref.name ?? orgPref.VcseTypeId ?? `Type ${orgPref.VcseTypeId}`}
                     </label>
                 </div>
             ))}
@@ -132,13 +132,13 @@ export default function PreferencesForm({ onComplete }: PreferencesFormProps) {
                     <div key={benefit.benefitId} className="flex items-center gap-3 text-md">
                         <input
                             type="checkbox"
-                            id={benefit.benefitId}
+                            id={benefit.benefitId.toString()}
                             checked={selectedBenefits.includes(benefit.benefitId)}
                             onChange={() => handleBenefitToggle(benefit.benefitId)}
                             className="w-5 h-5 border-2 border-Black/45 rounded cursor-pointer accent-Yellow"
                         />
                         <label
-                            htmlFor={benefit.benefitId}
+                            htmlFor={benefit.benefitId.toString()}
                             className="font-Body text-Black cursor-pointer flex-1"
                         >
                             {benefit.benefitName}
