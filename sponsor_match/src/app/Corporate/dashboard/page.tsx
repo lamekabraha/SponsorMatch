@@ -7,7 +7,6 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DashboardDataCard } from "@/app/Components/DashboardDataCard";
 import { DashboardCampaignCard } from "@/app/Components/DashboardCampaignCard";
-import Footer from "@/app/Components/Footer";
 import { toStorageRelativePath } from "@/lib/storagePaths";
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -317,7 +316,6 @@ export default function CorporateDashboard() {
           )}
         </section>
       </main>
-      <Footer />
     </>
   );
 }

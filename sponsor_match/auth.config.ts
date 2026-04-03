@@ -20,20 +20,20 @@ export const authConfig: NextAuthOptions = {
         // Place any other valid NextAuth callback overrides here if needed
         jwt({token, user}: {token: any; user: any}) {
             if (user){
-                token.id = user.id;
-                token.accountTypeId = (user as{
-                    accountTypeId?:number}).accountTypeId;
-                token.accountId = (user as{
-                    accountId?:number}).accountId;
+                const rawUserId = (user as { userId?: number | string; id?: number | string }).userId ?? user.id;
+                token.id = rawUserId != null ? String(rawUserId) : undefined;
+                token.userId = user.userId;
+                token.accountTypeId = user.accountTypeId;
+                token.accountId = user.accountId;
             }
             return token;
         },
         session({session, token}: {session: Session; token: any}) {
             if (session.user) {
-
-                (session.user as {id?: string}).id = token.id;
-                (session.user as {accountTypeId?:number}).accountTypeId = token.accountTypeId;
-                (session.user as {accountId?:number}).accountId = token.accountId;
+                session.user.id = token.id;
+                session.user.userId = token.userId;
+                session.user.accountTypeId = token.accountTypeId;
+                session.user.accountId = token.accountId;
             }
             return session;
         },

@@ -1,323 +1,403 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Navbar from "../Components/Navbar";
-import Footer from "../Components/Footer";
 import "./myaccount.css";
 import { toStorageRelativePath } from "@/lib/storagePaths";
 
-type MyAccountProfileResponse = {
-  account: {
-    AccountId: number;
-    Name: string;
-    AccountTypeId: number;
-    IndustrySector: string | null;
-    CompanySize: string | null;
-    ContactName: string | null;
-    ContactEmail: string | null;
-    ContactPhone: string | null;
-    Website: string | null;
-    Instagram: string | null;
-    Twitter: string | null;
-    Facebook: string | null;
-    LinkedIn: string | null;
-    CompanyLogo: string | null;
-    CompanyCover: string | null;
-    Address: string | null;
-    Description: string | null;
-  };
-  business: {
-    IndustryType: string | null;
-    PartnershipPref: string | null;
-    AnnualBudget: number | null;
-  } | null;
-  vcse: {
-    VcseType: string | null;
-    VerificationDoc: string | null;
-  } | null;
-};
+type Tab = "profile" | "branding" | "preferences" | "security";
 
-type MyAccountRouteResponse = {
+type MyAccountApiResponse = {
   success: boolean;
-  data?: {
-    profile?: Record<string, unknown>[];
-    business?: Record<string, unknown>[];
-  };
-  error?: string;
-};
-
-type TabKey = "profile" | "branding" | "security";
-
-type ProfileFormState = {
-  name: string;
-  description: string;
-  email: string;
-  phone: string;
-  website: string;
-  instagram: string;
-  twitter: string;
-  facebook: string;
-  linkedIn: string;
-  businessSector: string;
-  vcseType: string;
-};
-
-function resolveFileSrc(stored: string | null | undefined): string | null {
-  if (!stored) return null;
-  const raw = String(stored).trim();
-  if (!raw) return null;
-
-  // Works for both relative values like `accounts/...` and absolute URLs
-  // like `http://.../api/storage/accounts/...`.
-  const rel = toStorageRelativePath(raw);
-  if (rel) return `/api/files/${rel}`;
-  if (raw.startsWith("/api/files/")) return raw;
-  return raw.startsWith("/") ? raw : null;
-}
-
-function toEmptyString(value: string | null | undefined): string {
-  return value == null ? "" : String(value);
-}
-
-function toNullable(value: unknown): string | null {
-  if (value == null) return null;
-  const str = String(value).trim();
-  return str.length > 0 ? str : null;
-}
-
-function toNumber(value: unknown, fallback = 0): number {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-function normalizeMyAccountData(payload: MyAccountRouteResponse): MyAccountProfileResponse {
-  const profileRow = (payload.data?.profile?.[0] ?? {}) as Record<string, unknown>;
-  const businessRow = (payload.data?.business?.[0] ?? {}) as Record<string, unknown>;
-
-  return {
+  data: {
+    profile: {
+      UserId?: number;
+      FirstName?: string;
+      LastName?: string;
+      UserEmail?: string;
+      UserPhone?: string;
+      [k: string]: unknown;
+    } | null;
     account: {
-      AccountId: toNumber(profileRow.AccountId),
-      Name: String(profileRow.Name ?? profileRow.ContactName ?? ""),
-      AccountTypeId: toNumber(profileRow.AccountTypeId),
-      IndustrySector: toNullable(profileRow.IndustrySector),
-      CompanySize: toNullable(profileRow.CompanySize),
-      ContactName: toNullable(profileRow.ContactName),
-      ContactEmail: toNullable(profileRow.ContactEmail),
-      ContactPhone: toNullable(profileRow.ContactPhone),
-      Website: toNullable(businessRow.Website),
-      Instagram: toNullable(businessRow.Instagram),
-      Twitter: toNullable(businessRow.Twitter),
-      Facebook: toNullable(businessRow.Facebook),
-      LinkedIn: toNullable(businessRow.LinkedIn),
-      CompanyLogo: toNullable(businessRow.CompanyLogo),
-      CompanyCover: toNullable(businessRow.CompanyCover),
-      Address: toNullable(profileRow.Address),
-      Description: toNullable(businessRow.Description),
-    },
-    business: null,
-    vcse: null,
+      AccountTypeId?: number;
+      AccountType?: string;
+      Description?: string | null;
+      Address?: string | null;
+      logo?: string | null;
+      Website?: string | null;
+      Instagram?: string | null;
+      Twitter?: string | null;
+      Facebook?: string | null;
+      LinkedIn?: string | null;
+      [k: string]: unknown;
+    } | null;
+    preferences?: {
+      preferredCategories: number[];
+      preferredBenefits: number[];
+    };
   };
-}
+};
+
+type VcseTypeOption = { VcseTypeId: number; Name: string };
+type BenefitOption = { benefitId: number; benefitName: string };
 
 export default function MyAccountPage() {
-  const [activeTab, setActiveTab] = useState<TabKey>("profile");
-  const [profile, setProfile] = useState<MyAccountProfileResponse | null>(null);
-  const [form, setForm] = useState<ProfileFormState>({
-    name: "",
-    description: "",
+  const [api, setApi] = useState<MyAccountApiResponse["data"] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [savedMessage, setSavedMessage] = useState("");
+
+  const [activeTab, setActiveTab] = useState<Tab>("profile");
+
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
     email: "",
     phone: "",
+    description: "",
+    address: "",
     website: "",
     instagram: "",
     twitter: "",
     facebook: "",
     linkedIn: "",
-    businessSector: "",
-    vcseType: "",
+    preferredCategories: [] as number[],
+    preferredBenefits: [] as number[],
+    currentPassword: "",
+    newPassword: "",
+    repeatPassword: ""
   });
-  const [logoPreviewSrc, setLogoPreviewSrc] = useState<string | null>(null);
 
-  const [loading, setLoading] = useState(true);
+  const [vcseTypes, setVcseTypes] = useState<VcseTypeOption[]>([]);
+  const [benefitTypes, setBenefitTypes] = useState<BenefitOption[]>([]);
+
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
-  const [savedMessage, setSavedMessage] = useState<string>("");
-  const [errorMessage, setErrorMessage] = useState<string>("");
-
-  const accountTypeId = profile?.account.AccountTypeId ?? null;
-  const isBusiness = accountTypeId === 1;
-  const isVcse = accountTypeId === 2;
-
-  const resolvedVerification = useMemo(() => {
-    if (!profile?.vcse) return false;
-    return Boolean(profile.vcse.VerificationDoc);
-  }, [profile?.vcse]);
+  const [logoCacheBust, setLogoCacheBust] = useState(0);
 
   useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        setErrorMessage("");
+        setErrorMessage(null);
 
-        // Required by directive: fetch basic account info from getAccountData.
-        await fetch("/api/getAccountData").catch(() => null);
-
-        const profileRes = await fetch("/api/myaccount");
-        const profileJson = await profileRes.json();
-        if (!profileRes.ok || !profileJson?.success) {
-          throw new Error(profileJson?.error || "Failed to load profile");
+        const res = await fetch("/api/myaccount");
+        const json: MyAccountApiResponse = await res.json();
+        if (!json?.success) {
+          throw new Error("Failed to load");
         }
-
-        if (cancelled) return;
-
-        const nextProfile = normalizeMyAccountData(profileJson as MyAccountRouteResponse);
-        setProfile(nextProfile);
-
-        setForm({
-          name: toEmptyString(nextProfile.account.Name),
-          description: toEmptyString(nextProfile.account.Description),
-          email: toEmptyString(nextProfile.account.ContactEmail),
-          phone: toEmptyString(nextProfile.account.ContactPhone),
-          website: toEmptyString(nextProfile.account.Website),
-          instagram: toEmptyString(nextProfile.account.Instagram),
-          twitter: toEmptyString(nextProfile.account.Twitter),
-          facebook: toEmptyString(nextProfile.account.Facebook),
-          linkedIn: toEmptyString(nextProfile.account.LinkedIn),
-          businessSector: toEmptyString(nextProfile.business?.IndustryType),
-          vcseType: toEmptyString(nextProfile.vcse?.VcseType),
-        });
-
-        setLogoPreviewSrc(resolveFileSrc(nextProfile.account.CompanyLogo));
+        setApi(json.data);
       } catch (e) {
-        if (cancelled) return;
-        setErrorMessage(e instanceof Error ? e.message : "Failed to load account profile");
+        console.error("Error fetching account data:", e);
+        setErrorMessage("Failed to load account data");
       } finally {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       }
-    })();
-
-    return () => {
-      cancelled = true;
     };
+
+    fetchData();
   }, []);
 
-  async function handleSaveProfile(e: React.FormEvent) {
+  useEffect(() => {
+    if (!api) return;
+
+    const prefs = api.preferences ?? {
+      preferredCategories: [],
+      preferredBenefits: [],
+    };
+
+    setFormData((prev) => ({
+      ...prev,
+      firstName: String(api.profile?.FirstName ?? ""),
+      lastName: String(api.profile?.LastName ?? ""),
+      email: String(api.profile?.UserEmail ?? ""),
+      phone: String(api.profile?.UserPhone ?? ""),
+      description: String(api.account?.Description ?? ""),
+      address: String(api.account?.Address ?? ""),
+      website: String(api.account?.Website ?? ""),
+      instagram: String(api.account?.Instagram ?? ""),
+      twitter: String(api.account?.Twitter ?? ""),
+      facebook: String(api.account?.Facebook ?? ""),
+      linkedIn: String(api.account?.LinkedIn ?? ""),
+      preferredCategories: [...prefs.preferredCategories],
+      preferredBenefits: [...prefs.preferredBenefits],
+    }));
+  }, [api]);
+
+  const accountType = api?.account?.AccountType ?? "";
+  const isBusiness = accountType === 'Business';
+  const isVcse = !isBusiness;
+
+  useEffect(() => {
+    if (!isBusiness) return;
+
+    const loadOptions = async () => {
+      try {
+        const [orgRes, benRes] = await Promise.all([
+          fetch("/api/auth/register/onboarding/OrgTypes"),
+          fetch("/api/campaign/BenefitTypes"),
+        ]);
+
+        if (orgRes.ok) {
+          const raw = (await orgRes.json()) as Record<string, unknown>[];
+          setVcseTypes(
+            (Array.isArray(raw) ? raw : []).map((row) => ({
+              VcseTypeId: Number(row.VcseTypeId ?? 0),
+              Name: String(row.Name ?? row.VcseType ?? ""),
+            })),
+          );
+        }
+
+        if (benRes.ok) {
+          const raw = (await benRes.json()) as Record<string, unknown>[];
+          setBenefitTypes(
+            (Array.isArray(raw) ? raw : []).map((row) => ({
+              benefitId: Number(row.benefitId ?? row.BenefitId ?? 0),
+              benefitName: String(row.benefitName ?? row.Benefit ?? row.Name ?? ""),
+            })),
+          );
+        }
+      } catch (e) {
+        console.error("Failed to load preference options:", e);
+      }
+    };
+
+    loadOptions();
+  }, [isBusiness]);
+
+  const logoPreviewSrc = useMemo(() => {
+    const stored = api?.account?.logo;
+    const rel = toStorageRelativePath(
+      stored == null ? null : String(stored),
+    );
+    if (!rel) return null;
+    const qs = logoCacheBust > 0 ? `?v=${logoCacheBust}` : "";
+    return `/api/files/${rel}${qs}`;
+  }, [api, logoCacheBust]);
+
+  const resolvedVerification = false;
+
+  const toggleCategory = useCallback((id: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      preferredCategories: prev.preferredCategories.includes(id)
+        ? prev.preferredCategories.filter((x) => x !== id)
+        : [...prev.preferredCategories, id],
+    }));
+  }, []);
+
+  const toggleBenefit = useCallback((id: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      preferredBenefits: prev.preferredBenefits.includes(id)
+        ? prev.preferredBenefits.filter((x) => x !== id)
+        : [...prev.preferredBenefits, id],
+    }));
+  }, []);
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!profile) return;
-
     setSaving(true);
-    setErrorMessage("");
+    setErrorMessage(null);
     setSavedMessage("");
-
-    try {
-      const payload: any = {
-        name: form.name,
-        description: form.description,
-        email: form.email,
-        phone: form.phone,
-        website: form.website,
-        instagram: form.instagram,
-        twitter: form.twitter,
-        facebook: form.facebook,
-        linkedIn: form.linkedIn,
-      };
-
-      const res = await fetch("/api/myaccount", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+    try{
+      const res = await fetch('/api/myaccount/saveProfile', {
+        method: 'PUT', 
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName:formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+        }),
       });
 
-      const json = await res.json();
-      if (!res.ok || !json?.success) {
-        throw new Error(json?.error || "Failed to save changes");
-      }
+      const result = await res.json();
 
-      const refreshed = await fetch("/api/myaccount");
-      const refreshedJson = await refreshed.json();
-      if (refreshed.ok && refreshedJson?.success) {
-        const nextProfile = normalizeMyAccountData(refreshedJson as MyAccountRouteResponse);
-        setProfile(nextProfile);
-        setLogoPreviewSrc(resolveFileSrc(nextProfile.account.CompanyLogo));
+      if (result.success){
+        setSavedMessage("Profile changes saved.");
+        setTimeout(() => setSavedMessage(""), 3000);
+      } else {
+        setErrorMessage(String(result.error ?? "Failed to save profile"));
+        setTimeout(() => setErrorMessage(""), 3000);
       }
-
-      setSavedMessage("Saved successfully.");
-      setTimeout(() => setSavedMessage(""), 2500);
-    } catch (e) {
-      setErrorMessage(e instanceof Error ? e.message : "Failed to save changes.");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(String(err ?? "Failed to save profile"));
+      setTimeout(() => setErrorMessage(""), 3000);
     } finally {
       setSaving(false);
     }
   }
 
-  async function handleLogoUpload(file: File | null) {
-    if (!file || !profile) return;
-
-    const allowed = ["image/jpeg", "image/png", "image/webp"];
-    if (!allowed.includes(file.type)) {
-      setErrorMessage("Logo must be a JPG/PNG/WebP image.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMessage("Logo must be 5MB or less.");
-      return;
-    }
-
-    setUploadingLogo(true);
-    setErrorMessage("");
-
-    try {
-      const fd = new FormData();
-      // Existing branding route expects `logo` form field.
-      fd.append("logo", file);
-
-      const res = await fetch("/api/auth/register/onboarding/vcse/branding", {
-        method: "POST",
-        body: fd,
+  const handleSaveBranding = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setErrorMessage(null);
+    setSavedMessage('');
+    try{
+      const res = await fetch('/api/myaccount/saveBranding', {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          address: formData.address,
+          website: formData.website,
+          instagram: formData.instagram,
+          twitter: formData.twitter,
+          facebook: formData.facebook,
+          linkedIn: formData.linkedIn
+        }),
       });
-      const json = await res.json();
-      if (!res.ok || !json?.success) {
-        throw new Error(json?.error || "Failed to upload logo");
-      }
 
-      const nextLogo = json?.logoUrl ?? null;
-      setLogoPreviewSrc(resolveFileSrc(nextLogo));
-      setProfile((prev) =>
-        prev
-          ? {
-              ...prev,
-              account: {
-                ...prev.account,
-                CompanyLogo: nextLogo,
-              },
-            }
-          : prev,
-      );
-      setSavedMessage("Logo updated.");
-      setTimeout(() => setSavedMessage(""), 2500);
-    } catch (e) {
-      setErrorMessage(e instanceof Error ? e.message : "Failed to upload logo");
-    } finally {
-      setUploadingLogo(false);
+      const result = await res.json();
+
+      if (result.success){
+        setSavedMessage('Branding changes saved'); 
+        setTimeout(() => setSavedMessage(''), 3000);
+      }else {
+        setErrorMessage(String(result.error ?? 'Failed to save branding information'));
+        setTimeout(() => setErrorMessage(''), 3000);
+      }
+    }catch(error) {
+      console.error(error);
+      setErrorMessage(String(error ?? 'Failed to save branding information'));
+      setTimeout(() => setErrorMessage(''),3000);
+    }finally {
+      setSaving(false)
     }
   }
 
-  const tabButton = (tab: TabKey, label: string) => (
-    <button
-      type="button"
-      className={`ma-tabButton ${activeTab === tab ? "is-active" : ""}`}
-      onClick={() => setActiveTab(tab)}
-    >
-      <span className="ma-tabLabel">{label}</span>
-      {activeTab === tab ? <span className="ma-tabActiveDot" /> : null}
-    </button>
-  );
+
+  const handleSavingPref = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setErrorMessage(null);
+    setSavedMessage('');
+
+    try{
+      const res = await fetch('/api/myaccount/savePref', {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          preferredCategories: formData.preferredCategories,
+          preferredBenefits: formData.preferredBenefits,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        setSavedMessage('Matching Preferences updated!');
+        setTimeout(() => setSavedMessage(''), 3000);
+      }else{
+        setErrorMessage(String(result.error?? 'Failed to update preferences.'))
+        setTimeout(() => setErrorMessage(''), 3000)
+      }
+    }catch (error) {
+      console.error(error)
+      setErrorMessage(String(error ?? 'Failed to update preference.'))
+      setTimeout(() => setErrorMessage(''), 3000)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSavedMessage('')
+    setErrorMessage(null)
+    setSaving(true)
+
+    try {
+      const res = await fetch("/api/myaccount/changePassword", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPassword: formData.currentPassword,
+          newPassword: formData.newPassword,
+          repeatPassword: formData.repeatPassword,
+        }),
+      })
+
+      const raw = await res.text()
+      let result: { success?: boolean; error?: string }
+      try {
+        result = raw ? (JSON.parse(raw) as typeof result) : {}
+      } catch {
+        setErrorMessage(
+          !res.ok
+            ? `Request failed (${res.status}).`
+            : "The server returned an unexpected response."
+        )
+        setTimeout(() => setErrorMessage(""), 5000)
+        return
+      }
+
+      if (result.success) {
+        setSavedMessage("Password updated.")
+        setTimeout(() => setSavedMessage(""), 3000)
+      } else {
+        setErrorMessage(String(result.error ?? "Failed to change password."))
+        setTimeout(() => setErrorMessage(""), 3000)
+      }
+    } catch (error) {
+      console.error(error)
+      setErrorMessage(String(error ?? "Failed to change password."))
+      setTimeout(() => setErrorMessage(""), 3000)
+    } finally {
+      setSaving(false)
+    }
+  }
+  
+  const handleLogoUpload = async (file: File | null) => {
+    if (!file) return;
+    setSavedMessage("");
+    setErrorMessage(null);
+    setUploadingLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append("logo", file);
+      const res = await fetch("/api/myaccount/logo", { method: "POST", body: formData });
+      const raw = await res.text();
+      let data: { success?: boolean; error?: string; logoUrl?: string };
+      try {
+        data = raw ? (JSON.parse(raw) as typeof data) : {};
+      } catch {
+        setErrorMessage(
+          !res.ok
+            ? `Upload failed (${res.status}).`
+            : "The server returned an unexpected response.",
+        );
+        setTimeout(() => setErrorMessage(""), 5000);
+        return;
+      }
+      if (!res.ok || !data.success) {
+        setErrorMessage(String(data.error ?? "Failed to upload logo."));
+        setTimeout(() => setErrorMessage(""), 4000);
+        return;
+      }
+      if (data.logoUrl) {
+        setApi((prev) =>
+          prev?.account
+            ? { ...prev, account: { ...prev.account, logo: data.logoUrl } }
+            : prev,
+        );
+        setLogoCacheBust((n) => n + 1);
+      }
+      setSavedMessage("Logo updated.");
+      setTimeout(() => setSavedMessage(""), 3000);
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(String(err ?? "Failed to upload logo."));
+      setTimeout(() => setErrorMessage(""), 4000);
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
 
   return (
     <>
       <Navbar />
-
       <div className="page-container">
         <div className="ma-page">
           <div className="ma-header">
@@ -327,15 +407,44 @@ export default function MyAccountPage() {
                 Keep your details up to date for better matches and sponsor visibility.
               </p>
             </div>
-            <div className="ma-headerBadge">
-              {isBusiness ? "Business" : isVcse ? "VCSE" : "Account"}
-            </div>
+            <div className="ma-headerBadge">{accountType}</div>
           </div>
 
           <div className="ma-tabs">
-            {tabButton("profile", "Profile Info")}
-            {tabButton("branding", "Identity & Branding")}
-            {tabButton("security", "Security")}
+            <button
+              type="button"
+              className={`ma-tabButton ${activeTab === "profile" ? "is-active" : ""}`}
+              onClick={() => setActiveTab("profile")}
+              aria-pressed={activeTab === "profile"}
+            >
+              Profile
+            </button>
+            <button
+              type="button"
+              className={`ma-tabButton ${activeTab === "branding" ? "is-active" : ""}`}
+              onClick={() => setActiveTab("branding")}
+              aria-pressed={activeTab === "branding"}
+            >
+              Branding
+            </button>
+            {isBusiness ? (
+              <button
+                type="button"
+                className={`ma-tabButton ${activeTab === "preferences" ? "is-active" : ""}`}
+                onClick={() => setActiveTab("preferences")}
+                aria-pressed={activeTab === "preferences"}
+              >
+                Matching preferences
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className={`ma-tabButton ${activeTab === "security" ? "is-active" : ""}`}
+              onClick={() => setActiveTab("security")}
+              aria-pressed={activeTab === "security"}
+            >
+              Security
+            </button>
           </div>
 
           {loading ? (
@@ -353,11 +462,24 @@ export default function MyAccountPage() {
                   <form onSubmit={handleSaveProfile} className="ma-form">
                     <div className="ma-formGrid">
                       <div className="ma-field">
-                        <label className="ma-label">Name</label>
+                        <label className="ma-label">First Name</label>
                         <input
                           className="ma-input"
-                          value={form.name}
-                          onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                          value={formData.firstName}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, firstName: e.target.value }))
+                          }
+                        />
+                      </div>
+
+                      <div className="ma-field">
+                        <label className="ma-label">Last Name</label>
+                        <input
+                          className="ma-input"
+                          value={formData.lastName}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, lastName: e.target.value }))
+                          }
                         />
                       </div>
 
@@ -366,8 +488,10 @@ export default function MyAccountPage() {
                         <input
                           className="ma-input"
                           type="email"
-                          value={form.email}
-                          onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+                          value={formData.email}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, email: e.target.value }))
+                          }
                         />
                       </div>
 
@@ -376,15 +500,20 @@ export default function MyAccountPage() {
                         <input
                           className="ma-input"
                           type="tel"
-                          value={form.phone}
-                          onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+                          value={formData.phone}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, phone: e.target.value }))
+                          }
                         />
                       </div>
-
                     </div>
 
                     <div className="ma-actions">
-                      <button type="submit" className="ma-btn ma-btn-primary" disabled={saving}>
+                      <button
+                        type="submit"
+                        className="ma-btn ma-btn-primary"
+                        disabled={saving}
+                      >
                         {saving ? "Saving…" : "Save Changes"}
                       </button>
                     </div>
@@ -410,7 +539,9 @@ export default function MyAccountPage() {
                           <div className="ma-avatarFallback">Logo</div>
                         )}
                       </div>
-                      <p className="ma-helpText">Upload a clear square logo for better recognition.</p>
+                      <p className="ma-helpText">
+                        Upload a clear square logo for better recognition.
+                      </p>
                     </div>
 
                     <div className="ma-uploadCard">
@@ -422,35 +553,44 @@ export default function MyAccountPage() {
                         onChange={(e) => handleLogoUpload(e.target.files?.[0] ?? null)}
                         disabled={uploadingLogo}
                       />
-
                       <p className="ma-helpText" style={{ marginTop: 10 }}>
                         Uploads immediately using your account’s storage system.
                       </p>
-
-                      <div className="ma-actions">
-                        <button
-                          type="button"
-                          className="ma-btn"
-                          onClick={() => {
-                            // Intentionally empty: the upload is triggered by selecting a file.
-                          }}
-                          disabled
-                          style={{ opacity: 0.6 }}
-                        >
-                          Upload via file picker
-                        </button>
-                      </div>
                     </div>
                   </div>
 
-                  <form onSubmit={handleSaveProfile} className="ma-form">
+                  <form onSubmit={handleSaveBranding} className="ma-form">
                     <div className="ma-formGrid">
+                      <div className="ma-field ma-fieldFull">
+                        <label className="ma-label">Bio / Description</label>
+                        <textarea
+                          className="ma-textarea"
+                          value={formData.description}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, description: e.target.value }))
+                          }
+                          placeholder="Enter your bio / description"
+                        />
+                      </div>
+                      <div className="ma-field">
+                        <label className="ma-label">Address</label>
+                        <input
+                          className="ma-input"
+                          value={formData.address}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, address: e.target.value }))
+                          }
+                          placeholder="Enter your address"
+                        />
+                      </div>
                       <div className="ma-field">
                         <label className="ma-label">Website</label>
                         <input
                           className="ma-input"
-                          value={form.website}
-                          onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))}
+                          value={formData.website}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, website: e.target.value }))
+                          }
                           placeholder="https://your-org.org"
                         />
                       </div>
@@ -459,8 +599,10 @@ export default function MyAccountPage() {
                         <label className="ma-label">Instagram</label>
                         <input
                           className="ma-input"
-                          value={form.instagram}
-                          onChange={(e) => setForm((p) => ({ ...p, instagram: e.target.value }))}
+                          value={formData.instagram}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, instagram: e.target.value }))
+                          }
                           placeholder="https://instagram.com/your-handle"
                         />
                       </div>
@@ -469,8 +611,10 @@ export default function MyAccountPage() {
                         <label className="ma-label">Twitter / X</label>
                         <input
                           className="ma-input"
-                          value={form.twitter}
-                          onChange={(e) => setForm((p) => ({ ...p, twitter: e.target.value }))}
+                          value={formData.twitter}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, twitter: e.target.value }))
+                          }
                           placeholder="https://x.com/your-handle"
                         />
                       </div>
@@ -479,8 +623,10 @@ export default function MyAccountPage() {
                         <label className="ma-label">Facebook</label>
                         <input
                           className="ma-input"
-                          value={form.facebook}
-                          onChange={(e) => setForm((p) => ({ ...p, facebook: e.target.value }))}
+                          value={formData.facebook}
+                          onChange={(e) =>
+                            setFormData((p) => ({ ...p, facebook: e.target.value }))
+                          }
                           placeholder="https://facebook.com/your-page"
                         />
                       </div>
@@ -489,54 +635,91 @@ export default function MyAccountPage() {
                         <label className="ma-label">LinkedIn</label>
                         <input
                           className="ma-input"
-                          value={form.linkedIn}
-                          onChange={(e) => setForm((p) => ({ ...p, linkedIn: e.target.value }))}
-                          placeholder="https://linkedin.com/company/your-org"
-                        />
-                      </div>
-
-                      {isBusiness ? (
-                        <div className="ma-field ma-fieldFull">
-                          <label className="ma-label">Business Sector</label>
-                          <input
-                            className="ma-input"
-                            value={form.businessSector}
-                            onChange={(e) =>
-                              setForm((p) => ({ ...p, businessSector: e.target.value }))
-                            }
-                            placeholder="e.g. Education"
-                          />
-                        </div>
-                      ) : null}
-
-                      {isVcse ? (
-                        <div className="ma-field ma-fieldFull">
-                          <label className="ma-label">VCSE Type</label>
-                          <input
-                            className="ma-input"
-                            value={form.vcseType}
-                            onChange={(e) => setForm((p) => ({ ...p, vcseType: e.target.value }))}
-                            placeholder="e.g. Youth mentorship"
-                          />
-                        </div>
-                      ) : null}
-
-                      <div className="ma-field ma-fieldFull">
-                        <label className="ma-label">Bio / Description</label>
-                        <textarea
-                          className="ma-textarea"
-                          rows={5}
-                          value={form.description}
+                          value={formData.linkedIn}
                           onChange={(e) =>
-                            setForm((p) => ({ ...p, description: e.target.value }))
+                            setFormData((p) => ({ ...p, linkedIn: e.target.value }))
                           }
+                          placeholder="https://linkedin.com/company/your-org"
                         />
                       </div>
                     </div>
 
                     <div className="ma-actions">
-                      <button type="submit" className="ma-btn ma-btn-primary" disabled={saving}>
+                      <button
+                        type="submit"
+                        className="ma-btn ma-btn-primary"
+                        disabled={saving}
+                      >
                         {saving ? "Saving…" : "Save Changes"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              ) : null}
+
+              {activeTab === "preferences" && isBusiness ? (
+                <div className="ma-panel" style={{ marginTop: 16 }}>
+                  <h2 className="ma-panelTitle">Matching preferences</h2>
+                  <p className="ma-helpText" style={{ marginTop: 8, marginBottom: 0 }}>
+                    Choose which cause areas and partnership benefits should influence your Match Score.
+                  </p>
+
+                  <form onSubmit={handleSavingPref} className="ma-form">
+                    <div className="ma-prefSection">
+                      <h3 className="ma-prefSectionTitle">Cause areas</h3>
+                      <p className="ma-helpText ma-prefSectionHint">
+                        Organisation types (VCSE categories) you care about.
+                      </p>
+                      <div className="ma-prefGrid">
+                        {vcseTypes.map((row) => (
+                          <label
+                            key={row.VcseTypeId}
+                            className={`ma-prefCheck ${formData.preferredCategories.includes(row.VcseTypeId) ? "is-checked" : ""}`}
+                          >
+                            <input
+                              type="checkbox"
+                              className="ma-prefCheckbox"
+                              checked={formData.preferredCategories.includes(row.VcseTypeId)}
+                              onChange={() => toggleCategory(row.VcseTypeId)}
+                            />
+                            <span className="ma-prefCheckLabel">
+                              {row.Name || `Type ${row.VcseTypeId}`}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="ma-prefSection">
+                      <h3 className="ma-prefSectionTitle">Desired benefits</h3>
+                      <p className="ma-helpText ma-prefSectionHint">
+                        Partnership benefits you want to prioritise.
+                      </p>
+                      <div className="ma-prefGrid">
+                        {benefitTypes.map((b) => (
+                          <label
+                            key={b.benefitId}
+                            className={`ma-prefCheck ${formData.preferredBenefits.includes(b.benefitId) ? "is-checked" : ""}`}
+                          >
+                            <input
+                              type="checkbox"
+                              className="ma-prefCheckbox"
+                              checked={formData.preferredBenefits.includes(b.benefitId)}
+                              onChange={() => toggleBenefit(b.benefitId)}
+                            />
+                            <span className="ma-prefCheckLabel">{b.benefitName}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="ma-actions">
+                      <button
+                        type="submit"
+                        className="ma-btn ma-btn-primary"
+                        disabled={saving}
+                      >
+                        {saving ? "Saving…" : "Save matching preferences"}
                       </button>
                     </div>
                   </form>
@@ -548,34 +731,56 @@ export default function MyAccountPage() {
                   <h2 className="ma-panelTitle">Security</h2>
 
                   <div className="ma-securityGrid">
-                    <form
-                      className="ma-field"
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        setSavedMessage("Password update is not wired yet.");
-                        setTimeout(() => setSavedMessage(""), 2500);
-                      }}
-                    >
-                      <label className="ma-label">Current password</label>
-                      <input className="ma-input" type="password" disabled />
-
-                      <label className="ma-label" style={{ marginTop: 12 }}>
-                        New password
-                      </label>
-                      <input className="ma-input" type="password" disabled />
-
-                      <label className="ma-label" style={{ marginTop: 12 }}>
-                        Confirm new password
-                      </label>
-                      <input className="ma-input" type="password" disabled />
-
-                      <div className="ma-actions">
-                        <button type="submit" className="ma-btn ma-btn-primary" disabled>
-                          Update Password
-                        </button>
-                      </div>
-                    </form>
-
+                    <div className="ma-statusCard">
+                      <h3 className="ma-subTitle2">Change Password</h3>
+                      <form onSubmit={handleChangePassword} className="ma-form">
+                        <label htmlFor="currentPassword" className="ma-label">Current Password</label>
+                        <input
+                          type="password"
+                          className="ma-input"
+                          id="currentPassword"
+                          value={formData.currentPassword || ""}
+                          onChange={e =>
+                            setFormData(prev => ({
+                              ...prev,
+                              currentPassword: e.target.value
+                            }))
+                          }
+                          autoComplete="current-password"
+                        />
+                        <label htmlFor="newPassword" className="ma-label">New Password</label>
+                        <input
+                          type="password"
+                          className="ma-input"
+                          id="newPassword"
+                          value={formData.newPassword || ""}
+                          onChange={e =>
+                            setFormData(prev => ({
+                              ...prev,
+                              newPassword: e.target.value
+                            }))
+                          }
+                        />
+                        <label htmlFor="confirmNewPassword" className="ma-label">Confirm New Password</label>
+                        <input
+                          type="password"
+                          className="ma-input"
+                          id="repeatPassword"
+                          value={formData.repeatPassword || ""}
+                          onChange={e =>
+                            setFormData(prev => ({
+                              ...prev,
+                              repeatPassword: e.target.value
+                            }))
+                          }
+                        />
+                        <div className="ma-actions">
+                          <button type="submit" className="ma-btn ma-btn-primary" disabled={saving}>
+                            {saving ? "Saving…" : "Save Changes"}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
                     <div className="ma-statusCard">
                       <h3 className="ma-subTitle2">Account status</h3>
 
@@ -591,22 +796,10 @@ export default function MyAccountPage() {
                           <span className="ma-toggleVisual" />
                         </label>
                         <span className="ma-helpText">
-                          {isVcse ? "Derived from your verification document." : "Available for VCSE accounts."}
+                          {isVcse
+                            ? "Derived from your verification document (not available here)."
+                            : "Available for VCSE accounts."}
                         </span>
-                      </div>
-
-                      <div className="ma-toggleRow">
-                        <label className="ma-toggleLabel">
-                          Account is active
-                          <input
-                            type="checkbox"
-                            checked
-                            disabled
-                            className="ma-toggleInput"
-                          />
-                          <span className="ma-toggleVisual" />
-                        </label>
-                        <span className="ma-helpText">No toggle backend wired yet.</span>
                       </div>
                     </div>
                   </div>
@@ -616,8 +809,6 @@ export default function MyAccountPage() {
           )}
         </div>
       </div>
-
-      <Footer />
     </>
   );
 }

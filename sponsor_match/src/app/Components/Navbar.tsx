@@ -186,7 +186,7 @@ export default function Navbar() {
                 Create Campaign
               </Link>
               <Link
-                href={dashboardHref}
+                href="/campaign"
                 className="navDropdownLink"
                 onClick={closeAllMenus}
               >

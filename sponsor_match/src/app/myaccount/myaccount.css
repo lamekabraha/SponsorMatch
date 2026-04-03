@@ -117,6 +117,7 @@ body {
 
 .ma-form {
   margin-top: 14px;
+  margin-bottom: 14px;
 }
 
 .ma-formGrid {
@@ -367,10 +368,79 @@ body {
   font-size: 12px;
 }
 
+.ma-prefSection {
+  margin-top: 18px;
+}
+
+.ma-prefSection:first-of-type {
+  margin-top: 8px;
+}
+
+.ma-prefSectionTitle {
+  margin: 0 0 6px;
+  font-family: var(--font-Heading), Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: -0.15px;
+  color: rgba(11, 15, 25, 0.95);
+}
+
+.ma-prefSectionHint {
+  margin: 0 0 12px;
+}
+
+.ma-prefGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.ma-prefCheck {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(11, 15, 25, 0.14);
+  border-radius: 14px;
+  background: #fff;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.ma-prefCheck:hover {
+  border-color: rgba(11, 15, 25, 0.22);
+}
+
+.ma-prefCheck.is-checked {
+  border-color: rgba(11, 15, 25, 0.28);
+  background: #fffdf5;
+  box-shadow: 0 0 0 3px rgba(254, 216, 87, 0.35);
+}
+
+.ma-prefCheckbox {
+  margin-top: 2px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: var(--ma-yellow);
+  cursor: pointer;
+}
+
+.ma-prefCheckLabel {
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1.35;
+  color: rgba(11, 15, 25, 0.92);
+}
+
 @media (max-width: 920px) {
   .ma-formGrid,
   .ma-securityGrid,
-  .ma-brandingGrid {
+  .ma-brandingGrid,
+  .ma-prefGrid {
     grid-template-columns: 1fr;
   }
 }

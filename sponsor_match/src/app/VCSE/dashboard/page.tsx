@@ -89,8 +89,6 @@ export default function DashboardPage() {
   fetchDashboardData();
   }, [])
   
-  console.log(dashboardData)
-
   const filteredCampaigns = useMemo(() => {
     const campaigns = dashboardData?.campaigns ?? [];
     const normalizeSearch = searchQuery.toLowerCase().trim();

@@ -47,8 +47,8 @@ export default function LoginPage() {
     if (result?.ok) {
       // Fetch the updated session so we can read `accountTypeId` set by the credentials provider.
       const session = await getSession();
-      const accountTypeId = (session?.user as { accountTypeId?: number })?.accountTypeId;
-
+      const accountTypeId = session?.user?.accountTypeId;
+      
       if (accountTypeId === 1) {
         router.push("/Corporate/dashboard");
       } else if (accountTypeId === 2) {

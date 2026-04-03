@@ -5,7 +5,6 @@ import { authConfig } from "@/lib/auth-config";
 
 async function getAccountId(): Promise<number | null> {
   const session = await getServerSession(authConfig);
-  console.log("userId", session?.user?.id);
   return (session?.user as { accountId?: number })?.accountId ?? null;
 }
 
