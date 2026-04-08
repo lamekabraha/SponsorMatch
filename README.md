@@ -64,7 +64,7 @@ The application expects a MySQL database whose name and credentials you put in e
 
 ### 3a. Install MySQL (if you are hosting the database yourself)
 
-- Download MySQL Server from [MySQL Community Downloads](https://dev.mysql.com/downloads/mysql/) and install it, **or**
+- Download MySQL Server from [MySQL Community Installer](https://dev.mysql.com/downloads/installer) and install it, **or**
 - Use Docker, **or**
 - Use a managed MySQL service (AWS RDS, Azure Database for MySQL, etc.).
 
