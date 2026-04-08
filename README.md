@@ -29,7 +29,7 @@ Optional: **Git**, if you clone the repository instead of using a ZIP.
 **Option A — Git clone**
 
 ```bash
-git clone lamekabraha/SponsorMatch
+git clone https://github.com/lamekabraha/SponsorMatch.git
 cd SponsorMatch
 ```
 
