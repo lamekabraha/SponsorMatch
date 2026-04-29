@@ -180,7 +180,6 @@ export default function FavouritesPage() {
         )}
       </main>
     </div>
-          <Footer />
     </>
   );
 }
