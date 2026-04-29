@@ -279,7 +279,6 @@ export default function DashboardPage() {
         </section>
         </main>
       </div>
-      <Footer/> 
     </>
   );
 }

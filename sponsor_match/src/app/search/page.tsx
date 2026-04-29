@@ -280,8 +280,6 @@ export default function SearchPage() {
           </section>
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 }
